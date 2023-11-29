@@ -20,16 +20,18 @@ fun main() {
         return ribbonForWrap + ribbonForBow
     }
 
+    fun String.toDimensions() = split("x").map(Integer::valueOf)
+
     fun part1(input: List<String>): Int {
         return input.sumOf { rawDimensions ->
-            val dimensions = rawDimensions.split("x").map(Integer::valueOf)
+            val dimensions = rawDimensions.toDimensions()
             surfaceAreaOfBox(dimensions[0], dimensions[1], dimensions[2])
         }
     }
 
     fun part2(input: List<String>): Int {
         return input.sumOf { rawDimensions ->
-            val dimensions = rawDimensions.split("x").map(Integer::valueOf)
+            val dimensions = rawDimensions.toDimensions()
             ribbonNeeded(dimensions[0], dimensions[1], dimensions[2])
         }
     }
