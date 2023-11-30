@@ -5,11 +5,10 @@ import println
 import readInput
 
 fun main() {
-    fun findHash(secretKey: String, prefix: String): Int {
-        return generateSequence(0) { it + 1 }.first {
+    fun findHash(secretKey: String, prefix: String): Int =
+        generateSequence(0) { it + 1 }.first {
             "$secretKey$it".md5().startsWith(prefix)
         }
-    }
 
     // MD5s that start with 00000
     fun part1(secretKey: String): Int {
