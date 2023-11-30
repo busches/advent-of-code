@@ -6,7 +6,6 @@ import java.lang.IllegalArgumentException
 
 fun main() {
 
-
     fun moveToNextHouse(c: Char, currentCoordinates: Pair<Int, Int>) = when (c) {
         '>' -> currentCoordinates.copy(first = currentCoordinates.first + 1)
         '<' -> currentCoordinates.copy(first = currentCoordinates.first - 1)
@@ -15,16 +14,12 @@ fun main() {
         else -> throw IllegalArgumentException(c.toString())
     }
 
+    fun visitHouses(moves: List<Char>) =
+        moves.scan(Pair(0, 0)) { currentCoordinates, nextMove -> moveToNextHouse(nextMove, currentCoordinates) }.toSet()
+
     // Santa delivering
     fun part1(input: List<String>): Int {
-        var currentCoordinates = Pair(0, 0)
-        val housesVisited = mutableSetOf(currentCoordinates)
-        input.first().forEach { c ->
-            currentCoordinates =  moveToNextHouse(c, currentCoordinates)
-            housesVisited.add(currentCoordinates)
-        }
-
-        return housesVisited.size
+        return visitHouses(input.first().toList()).size
     }
     check(part1(listOf(">")) == 2)
     check(part1(listOf("^>v<")) == 4)
@@ -32,20 +27,11 @@ fun main() {
 
     // Santa and Robot rotate delivering
     fun part2(input: List<String>): Int {
-        var santaCoordinates = Pair(0, 0)
-        var robotCoordinates = Pair(0, 0)
-        val housesVisited = mutableSetOf(santaCoordinates)
-        input.first().forEachIndexed { index, c ->
-            val currentCoordinates = if (index % 2 == 0) santaCoordinates else robotCoordinates
-            val updatedCoordinates = moveToNextHouse(c, currentCoordinates)
-            housesVisited.add(updatedCoordinates)
-            when {
-                index % 2 == 0 -> santaCoordinates = updatedCoordinates
-                else -> robotCoordinates = updatedCoordinates
-            }
-        }
+        val (santa, robot) = input.first().withIndex().partition { it.index % 2 == 0 }
+        val santaHouses = visitHouses(santa.map(IndexedValue<Char>::value))
+        val robotHouses = visitHouses(robot.map(IndexedValue<Char>::value))
 
-        return housesVisited.size
+        return (santaHouses + robotHouses).size
     }
 
     check(part2(listOf("^v")) == 3)
