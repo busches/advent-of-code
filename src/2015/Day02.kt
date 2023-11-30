@@ -14,8 +14,8 @@ fun main() {
     }
 
     fun ribbonNeeded(l: Int, w: Int, h: Int): Int {
-        val dimensions = listOf(l, w, h).sorted()
-        val ribbonForWrap = dimensions[0] * 2 + dimensions[1] * 2
+        val (shortest, middle, _) = listOf(l, w, h).sorted()
+        val ribbonForWrap = shortest * 2 + middle  * 2
         val ribbonForBow = l * w * h
         return ribbonForWrap + ribbonForBow
     }
@@ -24,15 +24,15 @@ fun main() {
 
     fun part1(input: List<String>): Int {
         return input.sumOf { rawDimensions ->
-            val dimensions = rawDimensions.toDimensions()
-            surfaceAreaOfBox(dimensions[0], dimensions[1], dimensions[2])
+            val (l, w, h) = rawDimensions.toDimensions()
+            surfaceAreaOfBox(l, w, h)
         }
     }
 
     fun part2(input: List<String>): Int {
         return input.sumOf { rawDimensions ->
-            val dimensions = rawDimensions.toDimensions()
-            ribbonNeeded(dimensions[0], dimensions[1], dimensions[2])
+            val (l, w, h) = rawDimensions.toDimensions()
+            ribbonNeeded(l, w, h)
         }
     }
 
