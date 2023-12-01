@@ -6,13 +6,13 @@ import kotlin.math.max
 
 fun main() {
 
-    fun swapLights(
+    fun <T> swapLights(
         x1: String,
         x2: String,
         y1: String,
         y2: String,
-        lights: MutableMap<Pair<Int, Int>, Boolean>,
-        b: (Any, Any) -> Boolean
+        lights: MutableMap<Pair<Int, Int>, T>,
+        b: (Any, Any) -> T
     ) {
         for (x in (x1.toInt())..(x2.toInt())) {
             for (y in (y1.toInt())..(y2.toInt())) {
@@ -21,11 +21,11 @@ fun main() {
         }
     }
 
-    fun seedLights(): MutableMap<Pair<Int, Int>, Boolean> {
-        val lights = mutableMapOf<Pair<Int, Int>, Boolean>()
+    fun <T> seedLights(initialValue: T): MutableMap<Pair<Int, Int>, T> {
+        val lights = mutableMapOf<Pair<Int, Int>, T>()
         for (x in 0..999) {
             for (y in 0..999) {
-                lights[Pair(x, y)] = false
+                lights[Pair(x, y)] = initialValue
             }
         }
         return lights
@@ -33,7 +33,7 @@ fun main() {
 
     val instructionRegex = "(turn on|toggle|turn off) (\\d*),(\\d*) through (\\d*),(\\d*)".toRegex()
     fun part1(input: List<String>): Int {
-        val lights = seedLights()
+        val lights = seedLights(false)
         input.forEach { instruction ->
             val (command, x1, y1, x2, y2) = instructionRegex.find(instruction)!!.destructured
             when (command) {
@@ -48,41 +48,14 @@ fun main() {
     check(part1(listOf("toggle 0,0 through 999,0")) == 1000)
     check(part1(listOf("turn on 0,0 through 999,999", "turn off 499,499 through 500,500")) == (1_000_000 - 4))
 
-
-    // Copy and pasting is faster
-    fun swapLights2(
-        x1: String,
-        x2: String,
-        y1: String,
-        y2: String,
-        lights: MutableMap<Pair<Int, Int>, Int>,
-        b: (Any, Any) -> Int
-    ) {
-        for (x in (x1.toInt())..(x2.toInt())) {
-            for (y in (y1.toInt())..(y2.toInt())) {
-                lights[Pair(x, y)] = max(0, b(x, y))
-            }
-        }
-    }
-
-    fun seedLights2(): MutableMap<Pair<Int, Int>, Int> {
-        val lights = mutableMapOf<Pair<Int, Int>, Int>()
-        for (x in 0..999) {
-            for (y in 0..999) {
-                lights[Pair(x, y)] = 0
-            }
-        }
-        return lights
-    }
-
     fun part2(input: List<String>): Int {
-        val lights = seedLights2()
+        val lights = seedLights(0)
         input.forEach { instruction ->
             val (command, x1, y1, x2, y2) = instructionRegex.find(instruction)!!.destructured
             when (command) {
-                "turn on" -> swapLights2(x1, x2, y1, y2, lights) { x, y -> lights[Pair(x, y)]!! + 1 }
-                "toggle" -> swapLights2(x1, x2, y1, y2, lights) { x, y -> lights[Pair(x, y)]!! + 2 }
-                "turn off" -> swapLights2(x1, x2, y1, y2, lights) { x, y -> lights[Pair(x, y)]!! - 1 }
+                "turn on" -> swapLights(x1, x2, y1, y2, lights) { x, y -> lights[Pair(x, y)]!! + 1 }
+                "toggle" -> swapLights(x1, x2, y1, y2, lights) { x, y -> lights[Pair(x, y)]!! + 2 }
+                "turn off" -> swapLights(x1, x2, y1, y2, lights) { x, y -> max(0, lights[Pair(x, y)]!! - 1) }
             }
         }
         return lights.map { it.value }.sum()
