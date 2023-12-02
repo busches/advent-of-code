@@ -5,6 +5,8 @@ import readInput
 
 fun main() {
 
+    // Would have been easier to flip the commands so it was a map of <Wire, Source> and then have a table that resolved them and do recursion until
+    // We solved enough to input into A
     fun part1(input2: List<String>): Map<String, Int> {
         val input = input2.toMutableList()
 
