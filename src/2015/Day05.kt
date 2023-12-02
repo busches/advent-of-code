@@ -10,7 +10,9 @@ fun main() {
         val doubleLetterRegex = "([a-z])\\1".toRegex()
         val threeVowels = "([^aeiou]*[aeiou]){3}".toRegex()
 
-        return input.filterNot { badLettersRegex in it }.filter { doubleLetterRegex in it }
+        return input
+            .filterNot { badLettersRegex in it }
+            .filter { doubleLetterRegex in it }
             .filter { threeVowels in it }.size
     }
     check(part1(listOf("ugknbfddgicrmopn")) == 1)
