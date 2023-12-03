@@ -13,7 +13,8 @@ fun main() {
         return input
             .filterNot { badLettersRegex in it }
             .filter { doubleLetterRegex in it }
-            .filter { threeVowels in it }.size
+            .filter { threeVowels in it }
+            .size
     }
     check(part1(listOf("ugknbfddgicrmopn")) == 1)
     check(part1(listOf("aaa")) == 1)
@@ -26,8 +27,10 @@ fun main() {
         val twoCharactersRepeating = "([a-z]{2}).*\\1".toRegex()
         val twoCharactersMatchWithOneCharactersBetween = "([a-z]).\\1".toRegex()
 
-        return input.filter { twoCharactersRepeating in it }
-            .filter { twoCharactersMatchWithOneCharactersBetween in it }.size
+        return input
+            .filter { twoCharactersRepeating in it }
+            .filter { twoCharactersMatchWithOneCharactersBetween in it }
+            .size
     }
 
     check(part2(listOf("qjhvhtzxzqqjkmpb")) == 1)

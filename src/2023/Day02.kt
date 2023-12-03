@@ -12,9 +12,8 @@ fun main() {
             .flatMap { pull -> pull.split(",") }
             .map { colorDrawn ->
                 val colorSize = "(\\d*) (.*)".toRegex()
-                val (rawSize, color) = colorSize.find(colorDrawn.trim())!!.destructured
-                val size = rawSize.toInt()
-                Pair(color, size)
+                val (size, color) = colorSize.find(colorDrawn.trim())!!.destructured
+                Pair(color, size.toInt())
             }
             .groupBy { (color, _) -> color }
             .mapValues { (_, v) -> v.map { it.second } }
