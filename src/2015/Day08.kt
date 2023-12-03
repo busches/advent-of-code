@@ -15,7 +15,6 @@ fun main() {
             .replace("\\\"", "A")
             .replace("\\\\", "B")
             .replace("\\\\x[0-9a-f]{2}".toRegex(), "#")
-            .also { it.println() }
             .length
     }
 
@@ -42,7 +41,17 @@ fun main() {
 
 
     fun part2(input: List<String>): Int {
-        TODO()
+        var encodedSize = input.sumOf {
+            it.map { character ->
+                when (character) {
+                    '\"' -> "\\\""
+                    '\\' -> "\\\\"
+                    else -> character.toString()
+                }
+            }.joinToString(prefix = "\"", postfix = "\"", separator = "").length
+        }
+        var codeSize = input.sumOf { getCodeSize(it) }
+        return encodedSize - codeSize
     }
 
     val input = readInput("2015/Day08")
