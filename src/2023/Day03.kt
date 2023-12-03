@@ -45,9 +45,8 @@ fun main() {
 
     }
 
-    fun part1(input: List<String>): Int {
-        var partsFound = 0
-        val matrix = input.map { line -> line.toList() }
+    fun getPartList(matrix: List<List<Char>>): List<List<Pair<Int, Int>>> {
+        val partList = mutableListOf<List<Pair<Int, Int>>>()
 
         for (x in 0..<(matrix.size)) {
             val line = matrix[x]
@@ -56,10 +55,9 @@ fun main() {
                 if (line[y].isDigit()) {
                     val partNumberCoordinates = findPartNumberCoordinates(matrix, line, x, y)
                     val isPartNumber = hasAdjacentSymbol(matrix, partNumberCoordinates)
+
                     if (isPartNumber) {
-                        val partNumber =
-                            partNumberCoordinates.map { matrix[it.first][it.second] }.joinToString("").toInt()
-                        partsFound += partNumber
+                        partList.add(partNumberCoordinates)
                     }
                     y += partNumberCoordinates.size
                 } else {
@@ -67,8 +65,13 @@ fun main() {
                 }
             }
         }
+        return partList
+    }
 
-        return partsFound
+    fun part1(input: List<String>): Int {
+        val matrix = input.map { line -> line.toList() }
+        return getPartList(matrix)
+            .sumOf { partList -> partList.map { matrix[it.first][it.second] }.joinToString("").toInt() }
     }
 
     check(
