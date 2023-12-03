@@ -2,12 +2,10 @@ package `2023`
 
 import println
 import readInput
-import java.lang.IllegalArgumentException
-import kotlin.math.max
 
 fun main() {
 
-    fun mapGameRow(input: String): Pair<Int, List<Pair<String, Int>>> {
+    fun mapGameRow(input: String): Pair<Int, Map<String, List<Int>>> {
         val (game, pulls) = input.split(":")
         val gameId = game.replace("Game ", "").toInt()
         val allColors = pulls.split(";")
@@ -18,20 +16,22 @@ fun main() {
                 val size = rawSize.toInt()
                 Pair(color, size)
             }
+            .groupBy { (color, _) -> color }
+            .mapValues { (_, v) -> v.map { it.second } }
         return Pair(gameId, allColors)
     }
 
     fun isGamePossible(input: String, red: Int, green: Int, blue: Int): Int {
         val (gameId, allColors) = mapGameRow(input)
         val gameMatches = allColors.all { (color, size) ->
-                when (color) {
-                    "red" -> if (red < size) return@all false
-                    "green" -> if (green < size) return@all false
-                    "blue" -> if (blue < size) return@all false
-                    else -> throw IllegalArgumentException("Unexpected color")
-                }
-                true
+            val limit = when (color) {
+                "red" -> red
+                "green" -> green
+                "blue" -> blue
+                else -> throw IllegalArgumentException("Unexpected color")
             }
+            limit >= size.max()
+        }
 
         return if (gameMatches) gameId else 0
     }
@@ -61,19 +61,12 @@ fun main() {
 
 
     fun minNeeded(input: String): Triple<Int, Int, Int> {
-        var red = 0
-        var green = 0
-        var blue = 0
-        val (gameId, allColors) = mapGameRow(input)
-        allColors.forEach {(color, size) ->
-            when (color) {
-                "red" -> red = max(red, size)
-                "green" -> green = max(green, size)
-                "blue" -> blue = max(blue, size)
-            }
-        }
-
-        return Triple(red, green, blue)
+        val (_, allColors) = mapGameRow(input)
+        return Triple(
+            allColors["red"]!!.max(),
+            allColors["green"]!!.max(),
+            allColors["blue"]!!.max(),
+        )
     }
 
     check(minNeeded("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green") == Triple(4, 2, 6))
