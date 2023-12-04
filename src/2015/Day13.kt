@@ -1,3 +1,7 @@
+package `2015`
+
+import println
+import readInput
 import utils.permutations
 
 fun main() {
