@@ -11,7 +11,6 @@ fun main() {
             val matches = allTheDigits.findAll(it)
             "${matches.first().value}${matches.last().value}".toInt()
         }
-
     }
     check(part1(listOf("1abc2")) == 12)
     check(part1(listOf("pqr3stu8vwx")) == 38)
