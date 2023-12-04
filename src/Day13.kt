@@ -9,20 +9,24 @@ fun main() {
         return Pair(Pair(name1, name2), if (gainOrLose == "gain") units.toInt() else units.toInt() * -1)
     }
 
+    fun findMaxHappiness(
+        allPeople: List<String>,
+        peopleMap: Map<Pair<String, String>, Int>
+    ) = allPeople.permutations().maxOf { peopleCombo ->
+        peopleCombo.zipWithNext().sumOf { (peopleMap[it] ?: 0) + (peopleMap[Pair(it.second, it.first)] ?: 0) } +
+                // Have to add in the first and last people as sitting next to each other also
+                (peopleMap[Pair(peopleCombo.first(), peopleCombo.last())] ?: 0) +
+                (peopleMap[Pair(peopleCombo.last(), peopleCombo.first())] ?: 0)
+    }
+
     fun part1(input: List<String>): Int {
         val data = input.map(::extractValues)
 
         val allPeople = data.flatMap { listOf(it.first.first, it.first.second) }.distinct()
         val peopleMap = data.toMap()
 
-        return allPeople.permutations().maxOf { peopleCombo ->
-            peopleCombo.zipWithNext().sumOf { peopleMap[it]!! + peopleMap[Pair(it.second, it.first)]!! } +
-                    // Have to add in the first and last people as sitting next to each other also
-                    peopleMap[Pair(peopleCombo.first(), peopleCombo.last())]!! +
-                    peopleMap[Pair(peopleCombo.last(), peopleCombo.first())]!!
-        }
+        return findMaxHappiness(allPeople, peopleMap)
     }
-
 
     check(
         part1(
@@ -48,18 +52,13 @@ fun main() {
 
 
     fun part2(input: List<String>): Int {
-        TODO()
-    }
+        val data = input.map(::extractValues)
 
-    check(
-        part2(
-            listOf(
-                "London to Dublin = 464",
-                "London to Belfast = 518",
-                "Dublin to Belfast = 141"
-            )
-        ) == 982
-    )
+        val allPeople = data.flatMap { listOf(it.first.first, it.first.second) }.distinct() + listOf("Me")
+        val peopleMap = data.toMap()
+
+        return findMaxHappiness(allPeople, peopleMap)
+    }
 
     part2(input).println()
 }
