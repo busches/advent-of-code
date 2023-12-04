@@ -5,12 +5,14 @@ import readInput
 
 fun main() {
 
-    val allTheDigits = "(\\d)".toRegex()
+    val numbers = (0..9).map { "$it" }.toList()
+
+    fun findNumberString(input: List<String>, strings: List<String>) = input.sumOf {
+        "${it.findAnyOf(strings)!!.second}${it.findLastAnyOf(strings)!!.second}".toInt()
+    }
+
     fun part1(input: List<String>): Int {
-        return input.sumOf {
-            val matches = allTheDigits.findAll(it)
-            "${matches.first().value}${matches.last().value}".toInt()
-        }
+        return findNumberString(input, numbers)
     }
     check(part1(listOf("1abc2")) == 12)
     check(part1(listOf("pqr3stu8vwx")) == 38)
@@ -18,7 +20,7 @@ fun main() {
     check(part1(listOf("treb7uchet")) == 77)
 
     fun part2(input: List<String>): Int {
-        return input.map {
+        val updatedInput = input.map {
             it.replace("one", "o1e")
                 .replace("two", "t2o")
                 .replace("three", "t3e")
@@ -28,10 +30,8 @@ fun main() {
                 .replace("seven", "7n")
                 .replace("eight", "e8t")
                 .replace("nine", "9e")
-        }.sumOf {
-            val matches = allTheDigits.findAll(it)
-            "${matches.first().value}${matches.last().value}".toInt()
         }
+        return findNumberString(updatedInput, numbers)
     }
 
     check(part2(listOf("two1nine")) == 29)
