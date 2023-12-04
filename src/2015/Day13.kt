@@ -24,12 +24,9 @@ fun main() {
     }
 
     fun part1(input: List<String>): Int {
-        val data = input.map(::extractValues)
-
-        val allPeople = data.flatMap { listOf(it.first.first, it.first.second) }.distinct()
-        val peopleMap = data.toMap()
-
-        return findMaxHappiness(allPeople, peopleMap)
+        val data = input.associate(::extractValues)
+        val allPeople = data.keys.flatMap { listOf(it.first, it.second) }.distinct()
+        return findMaxHappiness(allPeople, data)
     }
 
     check(
@@ -56,12 +53,9 @@ fun main() {
 
 
     fun part2(input: List<String>): Int {
-        val data = input.map(::extractValues)
-
-        val allPeople = data.flatMap { listOf(it.first.first, it.first.second) }.distinct() + listOf("Me")
-        val peopleMap = data.toMap()
-
-        return findMaxHappiness(allPeople, peopleMap)
+        val data = input.associate(::extractValues)
+        val allPeople = data.keys.flatMap { listOf(it.first, it.second) }.distinct() + listOf("Me")
+        return findMaxHappiness(allPeople, data)
     }
 
     part2(input).println()
