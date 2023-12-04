@@ -13,14 +13,14 @@ fun main() {
         return Pair(Pair(name1, name2), if (gainOrLose == "gain") units.toInt() else units.toInt() * -1)
     }
 
+    fun Pair<String, String>.reverse() = Pair(second, first)
+
     fun findMaxHappiness(
         allPeople: List<String>,
         peopleMap: Map<Pair<String, String>, Int>
-    ) = allPeople.permutations().maxOf { peopleCombo ->
-        peopleCombo.zipWithNext().sumOf { (peopleMap[it] ?: 0) + (peopleMap[Pair(it.second, it.first)] ?: 0) } +
-                // Have to add in the first and last people as sitting next to each other also
-                (peopleMap[Pair(peopleCombo.first(), peopleCombo.last())] ?: 0) +
-                (peopleMap[Pair(peopleCombo.last(), peopleCombo.first())] ?: 0)
+    ) = allPeople.permutations()
+        .map { it + it.first() } // Add in first person again, as we need last + first person sitting next to each other
+        .maxOf { peopleCombo -> peopleCombo.zipWithNext().sumOf { (peopleMap[it] ?: 0) + (peopleMap[it.reverse()] ?: 0) }
     }
 
     fun part1(input: List<String>): Int {
