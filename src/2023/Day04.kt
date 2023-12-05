@@ -31,8 +31,7 @@ fun main() {
     }
 
     fun extraValues(input: String, index: Int): Card {
-        val (card, numbers) = input.split(":")
-        val (winningNumbers, numbersYouHave) = numbers.split("|")
+        val (_, winningNumbers, numbersYouHave) = input.split(":", "|")
 
         return Card(
             winningNumbers = winningNumbers.split(" ").filter { it.isNotBlank() }.map { it.toInt() },
