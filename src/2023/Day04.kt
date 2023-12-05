@@ -6,10 +6,8 @@ import kotlin.math.pow
 
 fun main() {
 
-    data class Card(val winningNumbers: List<Int>, val numbersYouHave: List<Int>, val cardIndex: Int) {
-
-        var nextWinnersValue: Int? = null
-        private val numberOfWinners = numbersYouHave.filter { it in winningNumbers }.size
+    data class Card(val winningNumbers: List<Int>, val numbersYouHave: List<Int>) {
+        val numberOfWinners = numbersYouHave.filter { it in winningNumbers }.size
 
         fun points(): Int {
             return when (numberOfWinners) {
@@ -18,33 +16,22 @@ fun main() {
                 else -> 2.0.pow((numberOfWinners - 1).toDouble()).toInt()
             }
         }
-
-        fun nextWinners(cards: List<Card>): Int {
-            if (nextWinnersValue == null) {
-                nextWinnersValue = (1..numberOfWinners).fold(numberOfWinners) { acc, index ->
-                    acc + cards[cardIndex + index].nextWinners(cards)
-                }
-            }
-
-            return nextWinnersValue as Int
-        }
     }
 
-    fun extraValues(input: String, index: Int): Card {
+    fun extraValues(input: String): Card {
         val (_, winningNumbers, numbersYouHave) = input.split(":", "|")
 
         return Card(
             winningNumbers = winningNumbers.split(" ").filter { it.isNotBlank() }.map { it.toInt() },
             numbersYouHave = numbersYouHave.split(" ").filter { it.isNotBlank() }.map { it.toInt() },
-            cardIndex = index,
         )
     }
 
-    check(extraValues("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53", 0).points() == 8)
+    check(extraValues("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53").points() == 8)
 
 
     fun part1(input: List<String>): Int {
-        return input.mapIndexed { index, line -> extraValues(line, index) }.sumOf(Card::points)
+        return input.map { line -> extraValues(line) }.sumOf(Card::points)
     }
 
     check(
@@ -64,9 +51,13 @@ fun main() {
     part1(input).println()
 
     fun part2(input: List<String>): Int {
-        val cards = input.mapIndexed { index, line -> extraValues(line, index) }
+        val cards = input.map { line -> extraValues(line) }
 
-        return cards.sumOf { it.nextWinners(cards) } + cards.size
+        // If we reverse, we can calculate the cards value bottom up, instead of having to pass around cards
+        return cards.reversed().fold(emptyList<Int>()) { acc, card ->
+            val sum = 1 + (0..<(card.numberOfWinners)).sumOf { acc[it] }
+            listOf(sum) + acc // Add new card winnings to the front of the list, since it's reversed
+        }.sum()
     }
 
     check(
