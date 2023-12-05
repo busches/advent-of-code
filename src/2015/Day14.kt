@@ -10,38 +10,11 @@ fun main() {
 
     data class Reindeer(val name: String, val speed: Int, val flightTime: Int, val restTime: Int) {
         fun distanceFlown(totalTime: Int): List<Int> {
-            var travelDistance = 0
-            var timeElapsed = 0
-            var restTimer = 0
-            var travelTimer = 0
-
-            var isFlying = true
-            val steps = mutableListOf<Int>()
-
-            while (timeElapsed != totalTime) {
-                timeElapsed++
-                if (isFlying) {
-                    if (travelTimer < flightTime) {
-                        travelDistance += speed
-                        travelTimer++
-                    } else {
-                        isFlying = false
-                        travelTimer = 0
-                        restTimer++
-                    }
-                } else {
-                    if (restTimer < restTime) {
-                        restTimer++
-                    } else {
-                        isFlying = true
-                        restTimer = 0
-                        travelDistance += speed
-                        travelTimer++
-                    }
-                }
-                steps.add(travelDistance)
+            return (1..totalTime).map { currentTime ->
+                val period = flightTime + restTime
+                val totalFlyTime = (currentTime / period) * flightTime + (currentTime % period).coerceAtMost(flightTime)
+                totalFlyTime * speed
             }
-            return steps
         }
     }
 
