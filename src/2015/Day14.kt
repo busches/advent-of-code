@@ -2,19 +2,21 @@ package `2015`
 
 import println
 import readInput
+import utils.transpose
 
 fun main() {
 
     val extract = "(.*) can fly (.*) km/s for (.*) seconds, but then must rest for (.*) seconds.".toRegex()
 
     data class Reindeer(val name: String, val speed: Int, val flightTime: Int, val restTime: Int) {
-        fun distanceFlown(totalTime: Int): Int {
+        fun distanceFlown(totalTime: Int): List<Int> {
             var travelDistance = 0
             var timeElapsed = 0
             var restTimer = 0
             var travelTimer = 0
 
             var isFlying = true
+            val steps = mutableListOf<Int>()
 
             while (timeElapsed != totalTime) {
                 timeElapsed++
@@ -37,13 +39,14 @@ fun main() {
                         travelTimer++
                     }
                 }
+                steps.add(travelDistance)
             }
-            return travelDistance
+            return steps
         }
     }
 
-    check(Reindeer("Comet", 14, 10, 127).distanceFlown(1000) == 1120)
-    check(Reindeer("Dancer", 16, 11, 162).distanceFlown(1000) == 1056)
+    check(Reindeer("Comet", 14, 10, 127).distanceFlown(1000).last() == 1120)
+    check(Reindeer("Dancer", 16, 11, 162).distanceFlown(1000).last() == 1056)
 
     fun extractValues(input: String): Reindeer {
         val (name, speed, flightTime, restTime) = extract.find(input)!!.destructured
@@ -53,7 +56,7 @@ fun main() {
 
     fun part1(input: List<String>, time: Int): Int {
         return input.map(::extractValues)
-            .maxOf { it.distanceFlown(time) }
+            .maxOf { it.distanceFlown(time).last() }
     }
 
     check(
@@ -68,9 +71,20 @@ fun main() {
     val input = readInput("2015/Day14")
     part1(input, 2503).println()
 
-
     fun part2(input: List<String>, time: Int): Int {
-        TODO()
+        val reindeerTimes = input
+            .map(::extractValues)
+            .map { reindeer -> reindeer.distanceFlown(time) }
+
+        val maxDistanceAtTime = reindeerTimes
+            .transpose()
+            .map { it.max() }
+
+        return reindeerTimes.maxOf { times ->
+            times.foldIndexed(0) { index, totalPoints, distance ->
+                totalPoints + if (maxDistanceAtTime[index] == distance) 1 else 0
+            }
+        }
     }
 
     check(

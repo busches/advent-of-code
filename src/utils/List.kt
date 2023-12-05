@@ -11,3 +11,7 @@ fun <T> List<T>.permutations(): List<List<T>> = when {
             }
         }.flatten()
 }
+
+fun <T> List<List<T>>.transpose() = with(this) {
+    this@transpose[0].indices.map { i -> map { it[i] } }
+}
