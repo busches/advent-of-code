@@ -40,6 +40,7 @@ fun main() {
 
         val mapLine = "(\\d+) (\\d+) (\\d+)".toRegex()
 
+        // Todo, instead of separate maps, we could make this a List<List<Long>> then chain each list we call, instead of swapping between maps
         var listToAddTo: MutableList<Triple<Long, Long, Long>>? = null
         input.drop(1).filter { it.isNotBlank() }.forEach { line ->
             when {
