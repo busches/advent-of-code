@@ -1,11 +1,14 @@
 package `2023`
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import println
 import readInput
 import java.time.LocalTime
 
 fun main() {
-
 
     data class AllTheseMaps(
         val seeds: Sequence<Long>,
@@ -37,40 +40,40 @@ fun main() {
 
         val mapLine = "(\\d+) (\\d+) (\\d+)".toRegex()
 
-        var mapToAddTo: MutableList<Triple<Long, Long, Long>>? = null
+        var listToAddTo: MutableList<Triple<Long, Long, Long>>? = null
         input.drop(1).filter { it.isNotBlank() }.forEach { line ->
             when {
                 line.startsWith("seed-to-soil") -> {
-                    mapToAddTo = seedToSoil
+                    listToAddTo = seedToSoil
                 }
 
                 line.startsWith("soil-to-fertilizer") -> {
-                    mapToAddTo = soilToFertilizer
+                    listToAddTo = soilToFertilizer
                 }
 
                 line.startsWith("fertilizer-to-water") -> {
-                    mapToAddTo = fertilizerToWater
+                    listToAddTo = fertilizerToWater
                 }
 
                 line.startsWith("water-to-light") -> {
-                    mapToAddTo = waterToLight
+                    listToAddTo = waterToLight
                 }
 
                 line.startsWith("light-to-temperature") -> {
-                    mapToAddTo = lightToTemperature
+                    listToAddTo = lightToTemperature
                 }
 
                 line.startsWith("temperature-to-humidity") -> {
-                    mapToAddTo = temperatureToHumidity
+                    listToAddTo = temperatureToHumidity
                 }
 
                 line.startsWith("humidity-to-location") -> {
-                    mapToAddTo = humidityToLocation
+                    listToAddTo = humidityToLocation
                 }
 
                 line.first().isDigit() -> {
                     val (destinationRangeStart, sourceRangeStart, rangeLength) = mapLine.find(line)!!.destructured
-                    mapToAddTo!!.add(
+                    listToAddTo!!.add(
                         Triple(
                             sourceRangeStart.toLong(),
                             destinationRangeStart.toLong(),
@@ -166,21 +169,29 @@ fun main() {
             input
         )
 
-        return seeds.chunked(2).minOf { (seedStart, rangeLength) ->
-            (0..rangeLength).minOf { index ->
-                if (index == 0L) {
-                    "Processing $seedStart ${LocalTime.now()}".println()
+        return runBlocking(Dispatchers.Default) {
+            seeds.chunked(2)
+                .map { (seedStart, rangeLength) ->
+                    async {
+                        (0..rangeLength).minOf { index ->
+                            if (index == 0L) {
+                                "Processing $seedStart ${LocalTime.now()}".println()
+                            }
+                            (seedStart + index)
+                                .let { seed -> lookup(seed, seedToSoil) }
+                                .let { seed -> lookup(seed, soilToFertilizer) }
+                                .let { seed -> lookup(seed, fertilizerToWater) }
+                                .let { seed -> lookup(seed, waterToLight) }
+                                .let { seed -> lookup(seed, lightToTemperature) }
+                                .let { seed -> lookup(seed, temperatureToHumidity) }
+                                .let { seed -> lookup(seed, humidityToLocation) }
+                        }
+                    }
                 }
-                (seedStart + index)
-                    .let { seed -> lookup(seed, seedToSoil) }
-                    .let { seed -> lookup(seed, soilToFertilizer) }
-                    .let { seed -> lookup(seed, fertilizerToWater) }
-                    .let { seed -> lookup(seed, waterToLight) }
-                    .let { seed -> lookup(seed, lightToTemperature) }
-                    .let { seed -> lookup(seed, temperatureToHumidity) }
-                    .let { seed -> lookup(seed, humidityToLocation) }
-            }
-
+                .toList()
+                .awaitAll()
+                .min()
+                .also { "done ${LocalTime.now()}" }
         }
     }
 
