@@ -8,13 +8,13 @@ fun main() {
 
     data class AllTheseMaps(
         val seeds: List<Long>,
-        val seedToSoil: Map<Long, Long>,
-        val soilToFertilizer: Map<Long, Long>,
-        val fertilizerToWater: Map<Long, Long>,
-        val waterToLight: Map<Long, Long>,
-        val lightToTemperature: Map<Long, Long>,
-        val temperatureToHumidity: Map<Long, Long>,
-        val humidityToLocation: Map<Long, Long>,
+        val seedToSoil: List<Triple<Long, Long, Long>>,
+        val soilToFertilizer: List<Triple<Long, Long, Long>>,
+        val fertilizerToWater: List<Triple<Long, Long, Long>>,
+        val waterToLight: List<Triple<Long, Long, Long>>,
+        val lightToTemperature: List<Triple<Long, Long, Long>>,
+        val temperatureToHumidity: List<Triple<Long, Long, Long>>,
+        val humidityToLocation: List<Triple<Long, Long, Long>>,
     )
 
     fun extractInts(
@@ -25,21 +25,20 @@ fun main() {
         .toList()
 
     fun extractValues(input: List<String>): AllTheseMaps {
-        val seedToSoil = mutableMapOf<Long, Long>()
-        val soilToFertilizer = mutableMapOf<Long, Long>()
-        val fertilizerToWater = mutableMapOf<Long, Long>()
-        val waterToLight = mutableMapOf<Long, Long>()
-        val lightToTemperature = mutableMapOf<Long, Long>()
-        val temperatureToHumidity = mutableMapOf<Long, Long>()
-        val humidityToLocation = mutableMapOf<Long, Long>()
+        val seedToSoil = mutableListOf<Triple<Long, Long, Long>>()
+        val soilToFertilizer = mutableListOf<Triple<Long, Long, Long>>()
+        val fertilizerToWater = mutableListOf<Triple<Long, Long, Long>>()
+        val waterToLight = mutableListOf<Triple<Long, Long, Long>>()
+        val lightToTemperature = mutableListOf<Triple<Long, Long, Long>>()
+        val temperatureToHumidity = mutableListOf<Triple<Long, Long, Long>>()
+        val humidityToLocation = mutableListOf<Triple<Long, Long, Long>>()
 
         val seeds = extractInts(input.first())
 
         val mapLine = "(\\d+) (\\d+) (\\d+)".toRegex()
 
-        var mapToAddTo: MutableMap<Long, Long>? = null
+        var mapToAddTo: MutableList<Triple<Long, Long, Long>>? = null
         input.drop(1).filter { it.isNotBlank() }.forEach { line ->
-            line.println()
             when {
                 line.startsWith("seed-to-soil") -> {
                     mapToAddTo = seedToSoil
@@ -71,9 +70,7 @@ fun main() {
 
                 line.first().isDigit() -> {
                     val (destinationRangeStart, sourceRangeStart, rangeLength) = mapLine.find(line)!!.destructured
-                    (0..<(rangeLength.toInt())).forEach { index ->
-                        mapToAddTo!![sourceRangeStart.toLong() + index] = destinationRangeStart.toLong() + index
-                    }
+                    mapToAddTo!!.add(Triple(sourceRangeStart.toLong(), destinationRangeStart.toLong(), rangeLength.toLong()))
                 }
             }
         }
@@ -91,19 +88,28 @@ fun main() {
         )
     }
 
+    fun lookup(slot: Long, ranges: List<Triple<Long, Long, Long>>) : Long {
+        ranges.forEach { (sourceRangeStart, destinationRangeStart, rangeLength) ->
+            if (slot >= sourceRangeStart && slot < sourceRangeStart + rangeLength) {
+                return ((slot - sourceRangeStart) + destinationRangeStart)
+            }
+        }
+        return slot
+    }
+
     fun part1(input: List<String>): Long {
         val (seeds, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation) = extractValues(
             input
         )
 
         return seeds
-            .map { seed -> seedToSoil[seed] ?: seed }
-            .map { seed -> soilToFertilizer[seed] ?: seed }
-            .map { seed -> fertilizerToWater[seed] ?: seed }
-            .map { seed -> waterToLight[seed] ?: seed }
-            .map { seed -> lightToTemperature[seed] ?: seed }
-            .map { seed -> temperatureToHumidity[seed] ?: seed }
-            .map { seed -> humidityToLocation[seed] ?: seed }
+            .map { seed -> lookup(seed, seedToSoil) }
+            .map { seed -> lookup(seed, soilToFertilizer) }
+            .map { seed -> lookup(seed, fertilizerToWater) }
+            .map { seed -> lookup(seed, waterToLight) }
+            .map { seed -> lookup(seed, lightToTemperature) }
+            .map { seed -> lookup(seed, temperatureToHumidity) }
+            .map { seed -> lookup(seed, humidityToLocation) }
             .min()
     }
 
