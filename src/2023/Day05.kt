@@ -2,12 +2,13 @@ package `2023`
 
 import println
 import readInput
+import java.time.LocalTime
 
 fun main() {
 
 
     data class AllTheseMaps(
-        val seeds: List<Long>,
+        val seeds: Sequence<Long>,
         val seedToSoil: List<Triple<Long, Long, Long>>,
         val soilToFertilizer: List<Triple<Long, Long, Long>>,
         val fertilizerToWater: List<Triple<Long, Long, Long>>,
@@ -19,10 +20,9 @@ fun main() {
 
     fun extractInts(
         input: String
-    ) = "(\\d+)".toRegex().findAll(input)
+    ): Sequence<Long> = "(\\d+)".toRegex().findAll(input)
         .map { it.value }
         .map { it.toLong() }
-        .toList()
 
     fun extractValues(input: List<String>): AllTheseMaps {
         val seedToSoil = mutableListOf<Triple<Long, Long, Long>>()
@@ -70,7 +70,13 @@ fun main() {
 
                 line.first().isDigit() -> {
                     val (destinationRangeStart, sourceRangeStart, rangeLength) = mapLine.find(line)!!.destructured
-                    mapToAddTo!!.add(Triple(sourceRangeStart.toLong(), destinationRangeStart.toLong(), rangeLength.toLong()))
+                    mapToAddTo!!.add(
+                        Triple(
+                            sourceRangeStart.toLong(),
+                            destinationRangeStart.toLong(),
+                            rangeLength.toLong()
+                        )
+                    )
                 }
             }
         }
@@ -88,7 +94,7 @@ fun main() {
         )
     }
 
-    fun lookup(slot: Long, ranges: List<Triple<Long, Long, Long>>) : Long {
+    fun lookup(slot: Long, ranges: List<Triple<Long, Long, Long>>): Long {
         ranges.forEach { (sourceRangeStart, destinationRangeStart, rangeLength) ->
             if (slot >= sourceRangeStart && slot < sourceRangeStart + rangeLength) {
                 return ((slot - sourceRangeStart) + destinationRangeStart)
@@ -110,67 +116,74 @@ fun main() {
             .map { seed -> lookup(seed, lightToTemperature) }
             .map { seed -> lookup(seed, temperatureToHumidity) }
             .map { seed -> lookup(seed, humidityToLocation) }
+            .toList()
             .min()
     }
 
-    check(
-        part1(
-            listOf(
-                "seeds: 79 14 55 13",
-                "",
-                "seed-to-soil map:",
-                "50 98 2",
-                "52 50 48",
-                "",
-                "soil-to-fertilizer map:",
-                "0 15 37",
-                "37 52 2",
-                "39 0 15",
-                "",
-                "fertilizer-to-water map:",
-                "49 53 8",
-                "0 11 42",
-                "42 0 7",
-                "57 7 4",
-                "",
-                "water-to-light map:",
-                "88 18 7",
-                "18 25 70",
-                "",
-                "light-to-temperature map:",
-                "45 77 23",
-                "81 45 19",
-                "68 64 13",
-                "",
-                "temperature-to-humidity map:",
-                "0 69 1",
-                "1 0 69",
-                "",
-                "humidity-to-location map:",
-                "60 56 37",
-                "56 93 4"
-            )
-        ) == 35L
+    val testInput = listOf(
+        "seeds: 79 14 55 13",
+        "",
+        "seed-to-soil map:",
+        "50 98 2",
+        "52 50 48",
+        "",
+        "soil-to-fertilizer map:",
+        "0 15 37",
+        "37 52 2",
+        "39 0 15",
+        "",
+        "fertilizer-to-water map:",
+        "49 53 8",
+        "0 11 42",
+        "42 0 7",
+        "57 7 4",
+        "",
+        "water-to-light map:",
+        "88 18 7",
+        "18 25 70",
+        "",
+        "light-to-temperature map:",
+        "45 77 23",
+        "81 45 19",
+        "68 64 13",
+        "",
+        "temperature-to-humidity map:",
+        "0 69 1",
+        "1 0 69",
+        "",
+        "humidity-to-location map:",
+        "60 56 37",
+        "56 93 4"
     )
+    check(part1(testInput) == 35L)
 
     val input = readInput("2023/Day05")
     part1(input).println()
 
 
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun part2(input: List<String>): Long {
+        val (seeds, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemperature, temperatureToHumidity, humidityToLocation) = extractValues(
+            input
+        )
+
+        return seeds.chunked(2).minOf { (seedStart, rangeLength) ->
+            (0..rangeLength).minOf { index ->
+                if (index == 0L) {
+                    "Processing $seedStart ${LocalTime.now()}".println()
+                }
+                (seedStart + index)
+                    .let { seed -> lookup(seed, seedToSoil) }
+                    .let { seed -> lookup(seed, soilToFertilizer) }
+                    .let { seed -> lookup(seed, fertilizerToWater) }
+                    .let { seed -> lookup(seed, waterToLight) }
+                    .let { seed -> lookup(seed, lightToTemperature) }
+                    .let { seed -> lookup(seed, temperatureToHumidity) }
+                    .let { seed -> lookup(seed, humidityToLocation) }
+            }
+
+        }
     }
 
-    check(
-        part2(
-            listOf(
-                "London to Dublin = 464",
-                "London to Belfast = 518",
-                "Dublin to Belfast = 141"
-            )
-        ) == 982
-    )
-
-
+    check(part2(testInput) == 46L)
     part2(input).println()
 }
