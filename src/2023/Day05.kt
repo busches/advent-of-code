@@ -1,6 +1,6 @@
 package `2023`
 
-import extractInts
+import extractLongs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -32,7 +32,7 @@ fun main() {
         val temperatureToHumidity = mutableListOf<Triple<Long, Long, Long>>()
         val humidityToLocation = mutableListOf<Triple<Long, Long, Long>>()
 
-        val seeds = input.first().extractInts()
+        val seeds = input.first().extractLongs()
 
         val mapLine = "(\\d+) (\\d+) (\\d+)".toRegex()
 
