@@ -16,7 +16,7 @@ enum class HandType {
 
 fun main() {
 
-    fun handValue(cards: String): HandType {
+    fun determineHandType(cards: String): HandType {
         val characterBuckets = cards.groupBy { it }.map { it.value.size }
 
         return when {
@@ -30,114 +30,57 @@ fun main() {
         }
     }
 
-    data class Hand(val cards: String, val bid: Int) : Comparable<Hand> {
-        val handType: HandType
-            get() = handValue(cards)
-
-        override fun compareTo(other: Hand): Int {
-            if (handType > other.handType) {
-                return 1
-            } else if (handType < other.handType) {
-                return -1
-            } else {
-                cards.forEachIndexed { index, card ->
-                    if (cardValue(card) > cardValue(other.cards[index])) {
-                        return -1
-                    } else if (cardValue(card) < cardValue(other.cards[index])) {
-                        return 1
-                    }
-                }
-
-                return 0
-            }
-        }
-
-        private fun cardValue(card: Char): Int {
-            return when (card) {
-                'A' -> 14
-                'K' -> 13
-                'Q' -> 12
-                'J' -> 11
-                'T' -> 10
-                '9' -> 9
-                '8' -> 8
-                '7' -> 7
-                '6' -> 6
-                '5' -> 5
-                '4' -> 4
-                '3' -> 3
-                '2' -> 2
-                else -> throw IllegalArgumentException("What is this $card")
-            }
-        }
+    data class Hand(
+        val cards: String,
+        val bid: Int,
+        private val mapCardValue: (Char) -> String,
+        val determineHandType: (String) -> HandType
+    ) {
+        val cardsForSorting: String
+            get() = cards.map { card -> mapCardValue(card) }.joinToString("")
     }
 
-    data class Hand2(val cards: String, val bid: Int) : Comparable<Hand2> {
-        private val NON_WILDS = listOf("A", "K", "Q", "T", "9", "8", "7", "6", "5", "4", "3", "2")
-
-        val handType: HandType
-            get() {
-                // Map J to all the things
-                if (cards.contains("J")) {
-                    return NON_WILDS
-                        .map { card -> cards.replace("J", card) }
-                        .map { handValue(it) }
-                        .minOf { it }
-                } else {
-                    return handValue(cards)
-                }
-            }
-
-        override fun compareTo(other: Hand2): Int {
-            if (handType > other.handType) {
-                return 1
-            } else if (handType < other.handType) {
-                return -1
-            } else {
-                cards.forEachIndexed { index, card ->
-                    if (cardValue(card) > cardValue(other.cards[index])) {
-                        return -1
-                    } else if (cardValue(card) < cardValue(other.cards[index])) {
-                        return 1
-                    }
-                }
-
-                return 0
-            }
+    fun solve(
+        input: List<String>,
+        cardValue: (Char) -> String,
+        handTypeKFunction1: (String) -> HandType
+    ) = input
+        .map {
+            val (cards, bid) = it.split(" ")
+            Hand(
+                cards = cards,
+                bid = bid.toInt(),
+                mapCardValue = cardValue,
+                determineHandType = handTypeKFunction1
+            )
         }
-
-        private fun cardValue(card: Char): Int {
-            return when (card) {
-                'A' -> 14
-                'K' -> 13
-                'Q' -> 12
-                'J' -> 1
-                'T' -> 10
-                '9' -> 9
-                '8' -> 8
-                '7' -> 7
-                '6' -> 6
-                '5' -> 5
-                '4' -> 4
-                '3' -> 3
-                '2' -> 2
-                else -> throw IllegalArgumentException("What is this $card")
-            }
+        .sortedWith(compareBy({ it.determineHandType(it.cards) }, { it.cardsForSorting }))
+        .reversed()
+        .mapIndexed { index, hand ->
+            hand.bid * (index + 1)
         }
-    }
+        .sum()
 
     fun part1(input: List<String>): Int {
-        return input
-            .map {
-                val (cards, bid) = it.split(" ")
-                Hand(cards, bid.toInt())
+        val cardValue = { card: Char ->
+            when (card) {
+                'A' -> "A"
+                'K' -> "B"
+                'Q' -> "C"
+                'J' -> "D"
+                'T' -> "E"
+                '9' -> "F"
+                '8' -> "G"
+                '7' -> "H"
+                '6' -> "I"
+                '5' -> "J"
+                '4' -> "K"
+                '3' -> "L"
+                '2' -> "M"
+                else -> throw IllegalArgumentException("What is this $card")
             }
-            .sorted()
-            .reversed()
-            .mapIndexed { index, hand ->
-                hand.bid * (index + 1)
-            }
-            .sum()
+        }
+        return solve(input, cardValue, ::determineHandType)
     }
 
     val testInput = readInput("2023/Day07_Test")
@@ -147,17 +90,31 @@ fun main() {
     part1(input).println()
 
     fun part2(input: List<String>): Int {
-        return input
-            .map {
-                val (cards, bid) = it.split(" ")
-                Hand2(cards, bid.toInt())
+        val cardValue = { card: Char ->
+            when (card) {
+                'A' -> "A"
+                'K' -> "B"
+                'Q' -> "C"
+                'J' -> "Z"
+                'T' -> "E"
+                '9' -> "F"
+                '8' -> "G"
+                '7' -> "H"
+                '6' -> "I"
+                '5' -> "J"
+                '4' -> "K"
+                '3' -> "L"
+                '2' -> "M"
+                else -> throw IllegalArgumentException("What is this $card")
             }
-            .sorted()
-            .reversed()
-            .mapIndexed { index, hand ->
-                hand.bid * (index + 1)
-            }
-            .sum()
+        }
+        val determineHandType = { cards: String ->
+            listOf("A", "K", "Q", "T", "9", "8", "7", "6", "5", "4", "3", "2")
+                .map { card -> cards.replace("J", card) }
+                .map { determineHandType(it) }
+                .minOf { it }
+        }
+        return solve(input, cardValue, determineHandType)
     }
 
     check(part2(testInput) == 5905)
