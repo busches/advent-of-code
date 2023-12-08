@@ -4,7 +4,11 @@ import md5
 import println
 import readInput
 
+
+
 fun main() {
+
+
     fun findHash(secretKey: String, prefix: String): Int =
         generateSequence(0) { it + 1 }.first {
             "$secretKey$it".md5().startsWith(prefix)
