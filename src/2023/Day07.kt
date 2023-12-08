@@ -34,7 +34,6 @@ fun main() {
         val cards: String,
         val bid: Int,
         private val mapCardValue: (Char) -> String,
-        val determineHandType: (String) -> HandType
     ) {
         val cardsForSorting: String
             get() = cards.map { card -> mapCardValue(card) }.joinToString("")
@@ -43,7 +42,7 @@ fun main() {
     fun solve(
         input: List<String>,
         cardValue: (Char) -> String,
-        handTypeKFunction1: (String) -> HandType
+        determineHandType: (String) -> HandType
     ) = input
         .map {
             val (cards, bid) = it.split(" ")
@@ -51,10 +50,9 @@ fun main() {
                 cards = cards,
                 bid = bid.toInt(),
                 mapCardValue = cardValue,
-                determineHandType = handTypeKFunction1
             )
         }
-        .sortedWith(compareBy({ it.determineHandType(it.cards) }, { it.cardsForSorting }))
+        .sortedWith(compareBy({ determineHandType(it.cards) }, { it.cardsForSorting }))
         .reversed()
         .mapIndexed { index, hand ->
             hand.bid * (index + 1)
@@ -108,13 +106,13 @@ fun main() {
                 else -> throw IllegalArgumentException("What is this $card")
             }
         }
-        val determineHandType = { cards: String ->
+        val determineHandTypePart2 = { cards: String ->
             listOf("A", "K", "Q", "T", "9", "8", "7", "6", "5", "4", "3", "2")
                 .map { card -> cards.replace("J", card) }
                 .map { determineHandType(it) }
                 .minOf { it }
         }
-        return solve(input, cardValue, determineHandType)
+        return solve(input, cardValue, determineHandTypePart2)
     }
 
     check(part2(testInput) == 5905)
