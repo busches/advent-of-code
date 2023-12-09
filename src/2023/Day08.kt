@@ -2,7 +2,6 @@ package `2023`
 
 import println
 import readInput
-import kotlin.IllegalArgumentException
 
 fun main() {
 
@@ -46,10 +45,55 @@ fun main() {
     val input = readInput("2023/Day08")
     part1(input).println()
 
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun stepsToNode(
+        nodes: Map<String, Pair<String, String>>,
+        startingNodeKey: String,
+        instructions: String,
+    ): Int {
+        var steps = 0
+        var currentNode = nodes[startingNodeKey]!!
+        var lastNodeKey = startingNodeKey
+
+        while (!lastNodeKey.endsWith('Z')) {
+            instructions.forEach { instruction ->
+                val nextNode = when (instruction) {
+                    'L' -> currentNode.first
+                    'R' -> currentNode.second
+                    else -> throw IllegalArgumentException("$instruction")
+                }
+                currentNode = nodes[nextNode]!!
+                lastNodeKey = nextNode
+            }
+            steps += instructions.length
+        }
+
+        return steps
     }
 
-    check(part2(readInput("2023/Day08_Test2")) == 6)
+    fun factorsOfNumber(startingNumber: Int): List<Int> {
+        val factors = mutableListOf<Int>()
+        var number = startingNumber
+        for (i in 2 until number) {
+            while (number % i == 0) {
+                factors.add(i)
+                number /= i
+            }
+        }
+        return factors
+    }
+
+    fun part2(input: List<String>): Long {
+        val (instructions, nodes) = extract(input)
+
+        val allStartingNodes = nodes.keys.filter { it.endsWith('A') }
+
+        return allStartingNodes
+            .map { nodeKey -> stepsToNode(nodes, nodeKey, instructions) }
+            .flatMap { factorsOfNumber(it) }
+            .toSet()
+            .fold(1L, Long::times)
+    }
+
+    check(part2(readInput("2023/Day08_Test2")) == 6L)
     part2(input).println()
 }
