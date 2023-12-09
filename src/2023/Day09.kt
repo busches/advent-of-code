@@ -28,22 +28,13 @@ fun main() {
 
 
     fun part2(input: List<String>): Long {
-        return extractSequences(input).map { it.reversed() }.sumOf { startingSequence ->
-            val allSequences = generateSequence(startingSequence) { sequence ->
-                sequence.zipWithNext().map { (first, second) -> (first - second) }
-            }.takeWhile { sequence -> sequence.any { it != 0L } }
-
-
-            val finalNumbers = allSequences.toList().reversed().map { it.last() }
-            val newNumbers = mutableListOf(0L)
-
-            finalNumbers.map {
-                val nextNumber = it - newNumbers.last()
-                newNumbers.add(nextNumber)
-                nextNumber
+        return extractSequences(input).map { it.reversed() } .sumOf { startingSequence ->
+            generateSequence(startingSequence) { sequence ->
+                sequence.zipWithNext().map { (first, second) -> (second - first) }
             }
-
-            newNumbers.last()
+                .takeWhile { sequence -> sequence.any { it != 0L } }
+                .map { it.last() }
+                .fold(0L, Long::plus)
         }
     }
 
