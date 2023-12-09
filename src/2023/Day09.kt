@@ -3,7 +3,6 @@ package `2023`
 import extractLongs
 import println
 import readInput
-import kotlin.math.absoluteValue
 
 fun main() {
 
@@ -11,19 +10,14 @@ fun main() {
         return input.map { it.extractLongs().toList() }
     }
 
-
     fun part1(input: List<String>): Long {
         return extractSequences(input).sumOf { startingSequence ->
-            val allSequences = mutableListOf(startingSequence)
-            while (!allSequences.last().all { it == 0L }) {
-                val nextSequence = allSequences.last().zipWithNext()
-                    .map { (first, second) -> (second - first) }
-
-                allSequences.add(nextSequence)
+            generateSequence(startingSequence) { sequence ->
+                sequence.zipWithNext().map { (first, second) -> (second - first) }
             }
-
-            allSequences.reversed()
-                .map { it.last() }.fold(0L, Long::plus)
+                .takeWhile { sequence -> sequence.any { it != 0L } }
+                .map { it.last() }
+                .fold(0L, Long::plus)
         }
     }
 
@@ -35,15 +29,12 @@ fun main() {
 
     fun part2(input: List<String>): Long {
         return extractSequences(input).map { it.reversed() }.sumOf { startingSequence ->
-            val allSequences = mutableListOf(startingSequence)
-            while (!allSequences.last().all { it == 0L }) {
-                val nextSequence = allSequences.last().zipWithNext()
-                    .map { (first, second) -> (first - second) }
+            val allSequences = generateSequence(startingSequence) { sequence ->
+                sequence.zipWithNext().map { (first, second) -> (first - second) }
+            }.takeWhile { sequence -> sequence.any { it != 0L } }
 
-                allSequences.add(nextSequence)
-            }
 
-            val finalNumbers = allSequences.reversed().map { it.last() }
+            val finalNumbers = allSequences.toList().reversed().map { it.last() }
             val newNumbers = mutableListOf(0L)
 
             finalNumbers.map {
