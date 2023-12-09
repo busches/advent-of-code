@@ -20,47 +20,19 @@ fun main() {
         return TheMap(instructions, nodes)
     }
 
-    fun part1(input: List<String>): Int {
-        val (instructions, nodes) = extract(input)
-        var steps = 0
-        var currentNode = nodes["AAA"]!!
-
-        while (currentNode != nodes["ZZZ"]) {
-            instructions.forEach { instruction ->
-                val nextNode = when (instruction) {
-                    'L' -> currentNode.first
-                    'R' -> currentNode.second
-                    else -> throw IllegalArgumentException("$instruction")
-                }
-                currentNode = nodes[nextNode]!!
-            }
-            steps += instructions.length
-        }
-
-        return steps
-    }
-
-    check(part1(readInput("2023/Day08_Test")) == 6)
-
-    val input = readInput("2023/Day08")
-    part1(input).println()
-
     fun stepsToNode(
         nodes: Map<String, Pair<String, String>>,
-        startingNodeKey: String,
         instructions: String,
+        startingNodeKey: String,
+        endsWith: String,
     ): Int {
         var steps = 0
         var currentNode = nodes[startingNodeKey]!!
         var lastNodeKey = startingNodeKey
 
-        while (!lastNodeKey.endsWith('Z')) {
+        while (!lastNodeKey.endsWith(endsWith)) {
             instructions.forEach { instruction ->
-                val nextNode = when (instruction) {
-                    'L' -> currentNode.first
-                    'R' -> currentNode.second
-                    else -> throw IllegalArgumentException("$instruction")
-                }
+                val nextNode = if (instruction == 'L') currentNode.first else currentNode.second
                 currentNode = nodes[nextNode]!!
                 lastNodeKey = nextNode
             }
@@ -69,6 +41,16 @@ fun main() {
 
         return steps
     }
+
+    fun part1(input: List<String>): Int {
+        val (instructions, nodes) = extract(input)
+        return stepsToNode(nodes, instructions, "AAA", "ZZZ")
+    }
+
+    check(part1(readInput("2023/Day08_Test")) == 6)
+
+    val input = readInput("2023/Day08")
+    part1(input).println()
 
     fun factorsOfNumber(startingNumber: Int): List<Int> {
         val factors = mutableListOf<Int>()
@@ -88,7 +70,7 @@ fun main() {
         val allStartingNodes = nodes.keys.filter { it.endsWith('A') }
 
         return allStartingNodes
-            .map { nodeKey -> stepsToNode(nodes, nodeKey, instructions) }
+            .map { nodeKey -> stepsToNode(nodes, instructions, nodeKey, "Z") }
             .flatMap { factorsOfNumber(it) }
             .toSet()
             .fold(1L, Long::times)
