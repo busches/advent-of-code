@@ -3,8 +3,7 @@ package `2023`
 import println
 import readInput
 
-
-enum class Direction(val changeX: Int, val changeY: Int) {
+enum class Direction(val changeY: Int, val changeX: Int) {
     UP(-1, 0),
     DOWN(1, 0),
     LEFT(0, -1),
@@ -43,16 +42,18 @@ fun main() {
         }
     }
 
+    val path = mutableListOf<Pair<Int, Int>>()
+
     fun part1(input: List<String>): Int {
         val grid = input.map { it.toList() }
 
         var steps = 1
-        for ((x, line) in input.withIndex()) {
-            for ((y, rawPipe) in line.withIndex()) {
+        for ((y, line) in input.withIndex()) {
+            for ((x, rawPipe) in line.withIndex()) {
                 if (rawPipe != 'S') continue
 
-                val startingLocation = x to y
-//                "Starting Location $startingLocation".println()
+                val startingLocation = y to x
+                path += startingLocation
                 directionSearch@ for (direction: Direction in Direction.entries) {
                     val nextLocation = startingLocation.move(direction)
                     var nextPipe = getPipe(grid, nextLocation)
@@ -61,6 +62,7 @@ fun main() {
                         continue@directionSearch
                     }
 
+                    path += nextLocation
                     var nextDirection = direction
                     var currentLocation = nextLocation
                     while (nextPipe != Pipe.START) {
@@ -68,8 +70,8 @@ fun main() {
                         nextDirection = nextPipe.directions.first { it != oppositeDirection }
                         currentLocation = currentLocation.move(nextDirection)
                         nextPipe = getPipe(grid, currentLocation)
+                        path += currentLocation
                         steps += 1
-//                        "$nextDirection $nextPipe at $currentLocation".println()
                     }
                     break
                 }
@@ -79,18 +81,54 @@ fun main() {
         return steps / 2
     }
 
-//    check(part1(readInput("2023/Day10_Test")) == 8)
+    check(part1(readInput("2023/Day10_Test")) == 8)
 
     val input = readInput("2023/Day10")
     part1(input).println()
 
     fun part2(input: List<String>): Int {
-        TODO()
+        // Use part1 to give us the path of our steps
+        path.clear() // RESET FOR THE TESTS
+        part1(input)
+
+        val grid = input.map { it.toList() }
+        val start = path.first()
+
+        // Use Ray Casting to see if how many times we cross the original grid
+        // If odd number of times, then the point was in the grid, if it's even, we were outside the grid
+        // https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm
+        var pointsInsideTheGrid = 0
+        for ((y, line) in input.withIndex()) {
+            for ((x, _) in line.withIndex()) {
+                if (y to x in path) { // Ignore points that are in the path
+                    continue
+                }
+
+                // Loop from current point's x to edge of grid
+                var intersections = 0
+                for (offset in 0..<(line.length - x)) {
+                    val currentCoordinate = y to x + offset
+                    if (currentCoordinate in path) {
+                        // Simulate we're shooting offset a bit, so we ignore -, L, J as intersections, otherwise we count edges too many times
+                        val pipe = getPipe(grid, currentCoordinate)
+                        if (pipe !in listOf(Pipe.HORIZONTAL, Pipe.L_BEND, Pipe.J_BEND)) {
+                            intersections++
+                        }
+                    }
+                }
+                if (intersections % 2 == 1) {
+                    pointsInsideTheGrid += 1
+                }
+            }
+        }
+        return pointsInsideTheGrid
     }
 
-    check(part2(readInput("2023/Day10_Test")) == 2)
+    check(part2(readInput("2023/Day10_Test2")) == 8)
+    check(part2(readInput("2023/Day10_Test3")) == 4)
+    check(part2(readInput("2023/Day10_Test4")) == 10)
     part2(input).println()
 }
 
 private fun Pair<Int, Int>.move(direction: Direction): Pair<Int, Int> =
-    this.first + direction.changeX to this.second + direction.changeY
+    this.first + direction.changeY to this.second + direction.changeX
