@@ -35,7 +35,7 @@ fun main() {
             val line = input[lineNumber]
             val onlySpace = line.all { it == '.' }
             if (onlySpace) {
-                updatedSpace2.addAll(lineNumber, List(expansionSize) { _ -> updatedSpace2[lineNumber] })
+                updatedSpace2.addAll(lineNumber, List(expansionSize) { _ -> emptyList() })
             }
         }
         "Updated rows ${updatedSpace2.size}".println()
