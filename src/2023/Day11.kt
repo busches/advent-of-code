@@ -3,6 +3,7 @@ package `2023`
 import println
 import readInput
 import kotlin.math.absoluteValue
+import kotlin.math.exp
 
 fun main() {
 
@@ -20,9 +21,7 @@ fun main() {
             updatedSpace.add(0, StringBuilder(line))
             val onlySpace = line.all { it == '.' }
             if (onlySpace) {
-                repeat(expansionSize) {
-                    updatedSpace.add(0, StringBuilder(line))
-                }
+                updatedSpace.addAll(0, List(expansionSize) {_ -> StringBuilder(line)})
             }
         }
 
