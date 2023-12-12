@@ -7,32 +7,42 @@ import kotlin.math.absoluteValue
 fun main() {
 
     fun expandSpace(input: List<String>, expansionSize: Int): List<String> {
-        var updatedSpace = mutableListOf<String>()
+        var updatedSpace = mutableListOf<StringBuilder>()
+
+//        updatedSpace = updatedSpace.map { line -> StringBuilder(line) }.toMutableList()
+
+        "Starting rows ${input.size}".println()
 
         // Add in new rows first
         for (lineNumber in (input.size - 1) downTo 0) {
             val line = input[lineNumber]
-            updatedSpace.add(0, line)
+            // Convert everything to StringBuilders for Part 2 efficiency
+            updatedSpace.add(0, StringBuilder(line))
             val onlySpace = line.all { it == '.' }
             if (onlySpace) {
                 repeat(expansionSize) {
-                    updatedSpace.add(0, line)
+                    updatedSpace.add(0, StringBuilder(line))
                 }
             }
         }
+
+        "Updated rows ${updatedSpace.size}".println()
+
 
         // Now add in columns
         for (columnNumber in (input.first().length - 1) downTo 0) {
             val onlySpace = input.map { it[columnNumber] }.all { it == '.' }
             if (onlySpace) {
-                repeat(expansionSize) {
-                    updatedSpace = updatedSpace.map { line -> StringBuilder(line).insert(columnNumber, '.').toString() }
-                        .toMutableList()
-                }
+                updatedSpace = updatedSpace.map { line ->
+                    repeat(expansionSize) {
+                        line.insert(columnNumber, '.')
+                    }
+                    line
+                }.toMutableList()
             }
         }
 
-        return updatedSpace//.also { it.joinToString("\n").println() }
+        return updatedSpace.map { it.toString() }//.also { it.joinToString("\n").println() }
     }
 
     check(expandSpace(readInput("2023/Day11_Test"), 1) == readInput("2023/Day11_TestExpanded"))
@@ -74,7 +84,40 @@ fun main() {
     part1(input).println()
 
     fun part2(input: List<String>): Long {
-        TODO()
+        val spaceGrid = expandSpace(input, 1_000_000).map { it.toList() }
+
+        "Created spaceGrid ${spaceGrid.size}x ${spaceGrid.first().size}".println()
+
+        // Find Galaxies
+        val galaxies = mutableListOf<Pair<Long, Long>>()
+        for (x in spaceGrid.indices) {
+            for (y in spaceGrid[x].indices) {
+                if (spaceGrid[x][y] == '#') {
+                    galaxies.add(x.toLong() to y.toLong())
+                }
+            }
+        }
+
+        "Found Galaxies - ${galaxies.size}".println()
+
+        // Create Pairs
+        val galaxyPairs = mutableListOf<Pair<Pair<Long, Long>, Pair<Long, Long>>>()
+        for (startingPairIndex in 0..<galaxies.size) {
+            for (nextPairIndex in (startingPairIndex + 1)..<galaxies.size) {
+                galaxyPairs.add(galaxies[startingPairIndex] to galaxies[nextPairIndex])
+            }
+        }
+
+        "Created pairs - ${galaxyPairs.size}".println()
+
+        // Find distance between pairs, using straight turns only
+        val distances = galaxyPairs.sumOf { (galaxy1, galaxy2) ->
+            val (x1, y1) = galaxy1
+            val (x2, y2) = galaxy2
+            (x2 - x1).absoluteValue + (y2 - y1).absoluteValue
+        }
+
+        return distances
     }
     part2(input).println()
 }
