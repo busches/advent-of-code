@@ -6,7 +6,7 @@ import kotlin.math.absoluteValue
 
 fun main() {
 
-    fun expandSpace(input: List<String>): List<String> {
+    fun expandSpace(input: List<String>, expansionSize: Int): List<String> {
         var updatedSpace = mutableListOf<String>()
 
         // Add in new rows first
@@ -15,7 +15,9 @@ fun main() {
             updatedSpace.add(0, line)
             val onlySpace = line.all { it == '.' }
             if (onlySpace) {
-                updatedSpace.add(0, line)
+                repeat(expansionSize) {
+                    updatedSpace.add(0, line)
+                }
             }
         }
 
@@ -23,31 +25,33 @@ fun main() {
         for (columnNumber in (input.first().length - 1) downTo 0) {
             val onlySpace = input.map { it[columnNumber] }.all { it == '.' }
             if (onlySpace) {
-                updatedSpace = updatedSpace.map { line -> StringBuilder(line).insert(columnNumber, '.').toString() }
-                    .toMutableList()
+                repeat(expansionSize) {
+                    updatedSpace = updatedSpace.map { line -> StringBuilder(line).insert(columnNumber, '.').toString() }
+                        .toMutableList()
+                }
             }
         }
 
         return updatedSpace//.also { it.joinToString("\n").println() }
     }
 
-    check(expandSpace(readInput("2023/Day11_Test")) == readInput("2023/Day11_TestExpanded"))
+    check(expandSpace(readInput("2023/Day11_Test"), 1) == readInput("2023/Day11_TestExpanded"))
 
-    fun part1(input: List<String>): Int {
-        val spaceGrid = expandSpace(input).map { it.toList() }
+    fun part1(input: List<String>): Long {
+        val spaceGrid = expandSpace(input, 1).map { it.toList() }
 
         // Find Galaxies
-        val galaxies = mutableListOf<Pair<Int, Int>>()
+        val galaxies = mutableListOf<Pair<Long, Long>>()
         for (x in spaceGrid.indices) {
             for (y in spaceGrid[x].indices) {
                 if (spaceGrid[x][y] == '#') {
-                    galaxies.add(x to y)
+                    galaxies.add(x.toLong() to y.toLong())
                 }
             }
         }
 
         // Create Pairs
-        val galaxyPairs = mutableListOf<Pair<Pair<Int, Int>, Pair<Int, Int>>>()
+        val galaxyPairs = mutableListOf<Pair<Pair<Long, Long>, Pair<Long, Long>>>()
         for (startingPairIndex in 0..<galaxies.size) {
             for (nextPairIndex in (startingPairIndex + 1)..<galaxies.size) {
                 galaxyPairs.add(galaxies[startingPairIndex] to galaxies[nextPairIndex])
@@ -64,12 +68,12 @@ fun main() {
         return distances
     }
 
-    check(part1(readInput("2023/Day11_Test")) == 374)
+    check(part1(readInput("2023/Day11_Test")) == 374L)
 
     val input = readInput("2023/Day11")
     part1(input).println()
 
-    fun part2(input: List<String>): Int {
+    fun part2(input: List<String>): Long {
         TODO()
     }
     part2(input).println()
