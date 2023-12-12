@@ -10,36 +10,34 @@ fun main() {
     fun expandSpace(input: List<String>, expansionSize: Int): List<String> {
         var updatedSpace = mutableListOf<StringBuilder>()
 
-//        updatedSpace = updatedSpace.map { line -> StringBuilder(line) }.toMutableList()
-
-        "Starting rows ${input.size}".println()
-
-        // Add in new rows first
         for (lineNumber in (input.size - 1) downTo 0) {
             val line = input[lineNumber]
             // Convert everything to StringBuilders for Part 2 efficiency
             updatedSpace.add(0, StringBuilder(line))
-            val onlySpace = line.all { it == '.' }
-            if (onlySpace) {
-                updatedSpace.addAll(0, List(expansionSize) {_ -> StringBuilder(line)})
-            }
         }
 
-        "Updated rows ${updatedSpace.size}".println()
-
-
-        // Now add in columns
+        "Starting columns ${input.first().length}".println()
         for (columnNumber in (input.first().length - 1) downTo 0) {
             val onlySpace = input.map { it[columnNumber] }.all { it == '.' }
             if (onlySpace) {
                 updatedSpace = updatedSpace.map { line ->
-                    repeat(expansionSize) {
-                        line.insert(columnNumber, '.')
-                    }
+                    line.insert(columnNumber, ".".repeat(expansionSize))
                     line
                 }.toMutableList()
             }
         }
+        "Updated columns ${updatedSpace.first().length}".println()
+
+        "Starting rows ${input.size}".println()
+        // Add in new rows
+        for (lineNumber in (input.size - 1) downTo 0) {
+            val line = input[lineNumber]
+            val onlySpace = line.all { it == '.' }
+            if (onlySpace) {
+                updatedSpace.addAll(lineNumber, List(expansionSize) { _ -> StringBuilder(updatedSpace[lineNumber]) })
+            }
+        }
+        "Updated rows ${updatedSpace.size}".println()
 
         return updatedSpace.map { it.toString() }//.also { it.joinToString("\n").println() }
     }
