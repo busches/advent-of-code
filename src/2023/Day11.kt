@@ -6,6 +6,7 @@ import kotlin.math.absoluteValue
 
 fun main() {
 
+    // This is gross from when I made a grid 17M x 17M and needed to fit it into memory :)
     fun expandSpace(input: List<String>, expansionSize: Int): List<List<Char>> {
         var updatedSpace = mutableListOf<CharSequence>()
 
@@ -32,13 +33,13 @@ fun main() {
             val line = input[lineNumber]
             val onlySpace = line.all { it == '.' }
             if (onlySpace) {
-                updatedSpace2.addAll(lineNumber, List(expansionSize) { _ -> emptyList() })
+                updatedSpace2.addAll(lineNumber, List(expansionSize) { _ -> updatedSpace2[lineNumber] })
             }
         }
-        return updatedSpace2//.also { it.joinToString("\n").println() }
+        return updatedSpace2
     }
 
-//    check(expandSpace(readInput("2023/Day11_Test"), 1) == readInput("2023/Day11_TestExpanded"))
+    check(expandSpace(readInput("2023/Day11_Test"), 1) == readInput("2023/Day11_TestExpanded").map { it.toList() })
 
     fun findGalaxies(spaceGrid: List<List<Char>>): MutableList<Pair<Long, Long>> {
         val galaxies = mutableListOf<Pair<Long, Long>>()
@@ -100,10 +101,11 @@ fun main() {
     val input = readInput("2023/Day11")
     part1(input).println()
 
+    check(solve(readInput("2023/Day11_Test"), 10 - 1) == 1030L)
+    check(solve(readInput("2023/Day11_Test"), 100 - 1) == 8410L)
+
     fun part2(input: List<String>): Long {
-        // 591011260421 is too low
-        // 613687601106 is too high
-       return solve(input, 1_000_000)
+        return solve(input, 1_000_000 - 1)
     }
     part2(input).println()
 }
