@@ -6,7 +6,7 @@ import utils.transpose
 
 fun main() {
 
-    data class Puzzle(val rows: List<String>) {
+    data class Puzzle(val rows: List<String>, val part1Score: Int = -1) {
         override fun toString(): String {
             return "Puzzle\n${rows.joinToString("\n")}"
         }
@@ -30,7 +30,7 @@ fun main() {
     }
 
 
-    fun getRowStart(newPuzzle: List<String>): Int {
+    fun getReflectionLine(newPuzzle: List<String>): Int {
         for (index in 0..(newPuzzle.size - 2)) {
             if (newPuzzle[index] == newPuzzle[index + 1]) {
                 "$index and ${index + 1} match".println()
@@ -49,28 +49,27 @@ fun main() {
                         }
                     }
                 }
-
             }
         }
         return 0
     }
 
-    fun scorePuzzle(puzzle: Puzzle): Int {
+    fun scorePuzzle(puzzle: Puzzle): Puzzle {
         val verticalPuzzle = puzzle.rows.map { it.toList() }.transpose().map { it.joinToString("") }
-        var score = getRowStart(verticalPuzzle)
+        var score = getReflectionLine(verticalPuzzle)
 
         "Vertical Score $score".println()
         if (score == 0) {
-            score = getRowStart(puzzle.rows) * 100
+            score = getReflectionLine(puzzle.rows) * 100
             "Horizontal Score $score".println()
         }
-        return score
+        return puzzle.copy(part1Score = score)
     }
 
     fun part1(input: List<String>): Int {
         return extractPuzzles(input)
             .sumOf { puzzle ->
-                scorePuzzle(puzzle).also { it.println() }
+                scorePuzzle(puzzle).part1Score.also { it.println() }
             }
     }
 
