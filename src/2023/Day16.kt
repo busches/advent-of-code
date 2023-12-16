@@ -11,35 +11,28 @@ fun main() {
         }
     }
 
-
-    fun part1(input: List<String>): Int {
-        val energized = mutableSetOf(0 to 0)
-        val beamStarts = mutableSetOf(BeamDirection(0 to 0, Direction.RIGHT))
+    fun panelsEnergized(startingBeam: BeamDirection, grid: List<List<Char>>): Int {
+        val energized = mutableSetOf<Pair<Int, Int>>()
+        val beamStarts = mutableSetOf(startingBeam)
         val startedBeams = mutableSetOf<BeamDirection>()
-        val grid = input.map { it.toList() }
 
         while (beamStarts.isNotEmpty()) {
             var currentBeam = beamStarts.first()
             beamStarts.remove(currentBeam)
             if (!startedBeams.add(currentBeam)) {
-                "Not executing $currentBeam again".println()
                 continue
             }
-            "Starting $currentBeam - ${beamStarts.size} remaining".println()
 
             // Allow the beam to travel forever
             while (true) {
                 val (y, x) = currentBeam.coords
-                "Beam is now at $currentBeam".println()
 
                 // Bounds check
                 if (y !in grid.indices || x !in grid.first().indices) {
-                    "Stopping $currentBeam out of bounds".println()
                     break
                 }
 
                 val currentSpace = grid[y][x]
-                "Currently visiting $currentSpace".println()
                 energized.add(currentBeam.coords)
                 when (currentSpace) {
                     '.' -> currentBeam = currentBeam.advance()
@@ -82,16 +75,23 @@ fun main() {
                             Direction.DOWN -> currentBeam.copy(direction = Direction.LEFT).advance()
                         }
                     }
+
                     else -> throw IllegalArgumentException("Where are we $currentSpace")
                 }
             }
         }
 
-        grid.mapIndexed {y, row -> row.mapIndexed { x, c     -> if (energized.contains(y to x)) '#' else '.'  }}
-            .joinToString("\n") {it.joinToString("")}
+        "Starting - $startingBeam".println()
+        grid.mapIndexed { y, row -> row.mapIndexed { x, c -> if (energized.contains(y to x)) '#' else '.' } }
+            .joinToString("\n") { it.joinToString("") }
             .println()
 
-        return energized.size.also { it.println() }
+        return energized.size
+    }
+
+    fun part1(input: List<String>): Int {
+        val startingBeam = BeamDirection(0 to 0, Direction.RIGHT)
+        return panelsEnergized(startingBeam, input.map { it.toList() })
     }
 
     check(part1(readInput("2023/Day16_Test")) == 46)
@@ -100,9 +100,17 @@ fun main() {
     part1(input).println()
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val grid = input.map { it.toList() }
+        val beamsFromTop = grid.first().indices.map { BeamDirection(0 to it, Direction.DOWN) }
+        val beamsFromBottom = grid.first().indices.map { BeamDirection(grid.first().size - 1 to it, Direction.UP) }
+        val beamsFromLeft = grid.indices.map { BeamDirection(it to 0, Direction.RIGHT )}
+        val beamsFromRight = grid.indices.map { BeamDirection(it to grid.size - 1, Direction.LEFT )}
+
+        val allStartingBeams = beamsFromTop + beamsFromLeft + beamsFromRight + beamsFromBottom
+
+        return allStartingBeams.maxOf { panelsEnergized(it, grid) }
     }
 
-    check(part2(readInput("2023/Day16_Test")) == 145)
+    check(part2(readInput("2023/Day16_Test")) == 51)
     part2(input).println()
 }
