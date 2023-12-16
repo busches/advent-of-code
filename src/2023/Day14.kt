@@ -13,24 +13,27 @@ fun main() {
                 val rockType = shiftedGrid[row][column]
 //                "Found $rockType at $row,$column".println()
                 if (rockType == 'O') {
-                    for (prevRow in (row - 1) downTo 0) {
-                        val prevRock = shiftedGrid[prevRow][column]
-//                        "  Found $prevRock at $prevRow,$column".println()
-                        if (prevRock == '.') {
-                            shiftedGrid[prevRow][column] = 'O'
-                            shiftedGrid[prevRow + 1][column] = '.'
-//                            "  Swapped rocks".println()
-//                            shiftedGrid.joinToString("\n") { it.joinToString("") }.println()
-                        } else {
-//                            "  Not swapping".println()
-                            break
-                        }
+                    // North is shift 1, 0
+                    // East is shift 0,1
+                    // South is shift -1, 0
+                    // West is shift 0, -1
+
+                    val (shiftX, shiftY) = 1 to 0
+
+
+                    var currentRockCoordinates = row to column
+                    while (currentRockCoordinates.first - shiftX >= 0 && currentRockCoordinates.first - shiftX < grid.size &&
+                        currentRockCoordinates.second - shiftY >= 0 && currentRockCoordinates.second - shiftY < grid.first().size &&
+                        shiftedGrid[ currentRockCoordinates.first - shiftX][currentRockCoordinates.second - shiftY] == '.') {
+                        shiftedGrid[currentRockCoordinates.first - shiftX][currentRockCoordinates.second - shiftY] = 'O'
+                        shiftedGrid[currentRockCoordinates.first][currentRockCoordinates.second] = '.'
+                        currentRockCoordinates = currentRockCoordinates.first - shiftX to currentRockCoordinates.second - shiftY
                     }
                 }
             }
         }
 
-//        shiftedGrid.joinToString("\n") { it.joinToString("") }.println()
+        shiftedGrid.joinToString("\n") { it.joinToString("") }.println()
         return shiftedGrid
     }
 
@@ -56,7 +59,7 @@ fun main() {
 
     }
 
-    check(part2(readInput("2023/Day14_Test")) == 145)
+    check(part2(readInput("2023/Day14_Test")) == 64)
 
 
     part2(input).println()
