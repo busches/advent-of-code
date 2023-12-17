@@ -66,8 +66,36 @@ fun main() {
     val input = readInput("2023/Day13")
     part1(input).println()
 
+    fun smudgeRow(puzzle: List<List<Char>>): Int {
+        val reversedPuzzle = puzzle.asReversed()
+        for (index in 1..<puzzle.size) {
+            val above = reversedPuzzle.takeLast(index)
+            val below = puzzle.drop(index)
+
+            // Zip our rows together, then compare each character to see if we only have 1 difference
+            // If there's only one difference, that's the smudge apparently, even if the next set of rows don't match
+            val differenceCount = above
+                .zip(below)
+                .sumOf { (aboveRow, belowRow) ->
+                    aboveRow
+                        .zip(belowRow)
+                        .count { (aboveChar, belowChar) -> aboveChar != belowChar }
+                }
+            if (differenceCount == 1) {
+                return index
+            }
+        }
+        return 0
+    }
+
     fun part2(input: List<String>): Int {
-        TODO()
+        val puzzles = extractPuzzles(input).map { it.rows.map { it.toList() } }
+        val horizontalRowsWithSmudge = puzzles.sumOf { puzzle -> smudgeRow(puzzle) }  * 100
+
+        val transposed = puzzles.map { it.transpose() }
+        val verticalRowsBeforeSmudge = transposed.sumOf { puzzle -> smudgeRow(puzzle) }
+
+        return (verticalRowsBeforeSmudge + horizontalRowsWithSmudge)
     }
 
     check(part2(readInput("2023/Day13_Test")) == 400)
