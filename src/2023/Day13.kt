@@ -34,19 +34,19 @@ fun main() {
 //        "Searching line in this puzzle\n${newPuzzle.joinToString("\n")}".println()
         for (index in 0..(newPuzzle.size - 2)) {
             if (newPuzzle[index] == newPuzzle[index + 1]) {
-                "$index and ${index + 1} match".println()
+//                "$index and ${index + 1} match".println()
                 for (nextRowCounter in 1..<(newPuzzle.size - index)) {
                     val topRow = index - nextRowCounter
                     val bottomRow = index + 1 + nextRowCounter
                     if (topRow !in newPuzzle.indices || bottomRow !in newPuzzle.indices) {
-                        "Reached the end, all rows matched, ${newPuzzle.indices}, $topRow $bottomRow".println()
+//                        "Reached the end, all rows matched, ${newPuzzle.indices}, $topRow $bottomRow".println()
                         return index + 1
                     } else {
                         if (newPuzzle[topRow] != newPuzzle[bottomRow]) {
-                            "Rows $topRow and $bottomRow did not match".println()
+//                            "Rows $topRow and $bottomRow did not match".println()
                             break
                         } else {
-                            "Rows $topRow and $bottomRow matched".println()
+//                            "Rows $topRow and $bottomRow matched".println()
                         }
                     }
                 }
@@ -57,13 +57,13 @@ fun main() {
 
     fun scorePuzzle(puzzle: Puzzle): Puzzle {
         var score = getReflectionLine(puzzle.rows) * 100
-        "Horizontal Score $score".println()
+//        "Horizontal Score $score".println()
 
         if (score == 0) {
             val verticalPuzzle = puzzle.rows.map { it.toList() }.transpose().map { it.joinToString("") }
-            var score = getReflectionLine(verticalPuzzle)
+            score = getReflectionLine(verticalPuzzle)
 
-            "Vertical Score $score".println()
+//            "Vertical Score $score".println()
         }
         return puzzle.copy(part1Score = score)
     }
@@ -71,14 +71,14 @@ fun main() {
     fun part1(input: List<String>): Int {
         return extractPuzzles(input)
             .sumOf { puzzle ->
-                scorePuzzle(puzzle).part1Score.also { it.println() }
+                scorePuzzle(puzzle).part1Score//.also { it.println() }
             }
     }
 
-//    check(part1(readInput("2023/Day13_Test")) == 405)
+    check(part1(readInput("2023/Day13_Test")) == 405)
 
     val input = readInput("2023/Day13")
-//    part1(input).println()
+    part1(input).println()
 
     fun part2(input: List<String>): Int {
         val originalPuzzles = extractPuzzles(input).map { puzzle -> scorePuzzle(puzzle) }
