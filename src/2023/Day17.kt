@@ -87,7 +87,6 @@ class Day17 {
                 nextDirections.add(direction)
             }
 
-
             return nextDirections
         }
 
