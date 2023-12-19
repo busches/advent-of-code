@@ -23,13 +23,27 @@ class Day18 {
         val gridHeight = yOffset + 75
         val gridWidth = xOffset + 340
 
+        return solve(gridWidth, gridHeight, xOffset, yOffset, directions)
+    }
+
+    fun part2(input: List<String>): Int {
+        TODO()
+    }
+
+    private fun solve(
+        gridWidth: Int,
+        gridHeight: Int,
+        xOffset: Int,
+        yOffset: Int,
+        directions: List<Directions>
+    ): Int {
         "Grid is ${gridWidth}x$gridHeight".println()
 
         val grid = MutableList(gridHeight) { MutableList(gridWidth) { _ -> '.' } }
         var currentX = xOffset
         var currentY = yOffset
 
-        directions.forEachIndexed { index, (direction, moves, _) ->
+        directions.forEachIndexed { index, (direction, moves) ->
             val nextDirection = directions[if (index + 1 == directions.size) 0 else index + 1].direction
             for (i in 1..moves) {
                 currentY += direction.changeY
@@ -103,17 +117,13 @@ class Day18 {
         return pointsInsideTheGrid.also { it.println() }
     }
 
-    fun part2(input: List<String>): Int {
-        TODO()
-    }
-
-    private data class Directions(val direction: Direction, val moves: Int, val rgbColor: String)
+    private data class Directions(val direction: Direction, val moves: Int)
 
     private fun parseInput(input: List<String>): List<Directions> {
-        val lineData = "(.) (\\d+) \\(#(.*)\\)".toRegex()
+        val lineData = "(.) (\\d+)".toRegex()
         return input.map { line ->
-            val (direction, moves, rgbColor) = lineData.find(line)!!.destructured
-            Directions(Direction.valueOf(direction), moves.toInt(), rgbColor)
+            val (direction, moves) = lineData.find(line)!!.destructured
+            Directions(Direction.valueOf(direction), moves.toInt())
         }
     }
 
