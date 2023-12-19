@@ -15,42 +15,66 @@ class Day18 {
     fun part1(input: List<String>): Int {
         val directions = parseInput(input)
 
-        // Do this rough so we allocate enough spots and don't have to resize later
-        val gridHeight = directions.filter { (direction, _, _) -> direction == Direction.D || direction == Direction.U }
-            .sumOf { (_, moves, _) -> moves } / 2 + 1
+        // For the full dataset, we have to increase our X, Y offset as we travel left from the start, we don't start at 0,0
+        val xOffset = 169
+        val yOffset = 150
 
-        val gridWidth = directions.filter { (direction, _, _) -> direction == Direction.L || direction == Direction.R }
-            .sumOf { (_, moves, _) -> moves } / 2
+        // Do this rough so we allocate enough spots and don't have to resize later
+        val gridHeight = yOffset + 75
+        val gridWidth = xOffset + 340
 
         "Grid is ${gridWidth}x$gridHeight".println()
 
+        val grid = MutableList(gridHeight) { MutableList(gridWidth) { _ -> '.' } }
+        var currentX = xOffset
+        var currentY = yOffset
 
-        val grid = MutableList(gridHeight) { MutableList(gridWidth) { _ -> false } }
-        var currentX = 0
-        var currentY = 0
-
-        directions.forEach { (direction, moves, _) ->
+        directions.forEachIndexed { index, (direction, moves, _) ->
+            val nextDirection = directions[if (index + 1 == directions.size) 0 else index + 1].direction
             for (i in 1..moves) {
                 currentY += direction.changeY
                 currentX += direction.changeX
-                "Moving ${direction} for $moves at $currentY,$currentX, move $i".println()
-                grid[currentY][currentX] = true
+                grid[currentY][currentX] = when (direction) {
+                    Direction.U -> when {
+                        i == moves && nextDirection == Direction.L -> '┐'
+                        i == moves && nextDirection == Direction.R -> '┌'
+                        else -> '│'
+                    }
+
+                    Direction.D -> when {
+                        i == moves && nextDirection == Direction.R -> '└'
+                        i == moves && nextDirection == Direction.L -> '┘'
+                        else -> '│'
+                    }
+
+                    Direction.L -> when {
+                        i == moves && nextDirection == Direction.D -> '┌'
+                        i == moves && nextDirection == Direction.U -> '└'
+                        else -> '─'
+                    }
+
+                    Direction.R -> when {
+                        i == moves && nextDirection == Direction.D -> '┐'
+                        i == moves && nextDirection == Direction.U -> '┘'
+                        else -> '─'
+                    }
+                }
             }
         }
 
         // grid.joinToString("\n") { it.map { if (it) "#" else "." }.joinToString("") }.println()
 
-        // Need to count all edges and inside
+        // Add all edges up to the path, so we can count intersections next
         val path = mutableListOf<Pair<Int, Int>>()
         for (y in grid.indices) {
             for (x in grid[y].indices) {
-                if (grid[y][x]) {
+                if (grid[y][x] != '.') {
                     path.add(y to x)
                 }
             }
         }
 
-
+        val ignoredEdges = listOf('─', '└', '┘')
         var pointsInsideTheGrid = 0
         for ((y, line) in grid.withIndex()) {
             for ((x, _) in line.withIndex()) {
@@ -64,7 +88,11 @@ class Day18 {
                 for (offset in 0..<(line.size - x)) {
                     val currentCoordinate = y to x + offset
                     if (currentCoordinate in path) {
-                        intersections++
+                        // Simulate we're shooting offset a bit, so we ignore -, L, J as intersections, otherwise we count edges too many times
+                        val pipe = grid[y][x + offset]
+                        if (pipe !in ignoredEdges) {
+                            intersections++
+                        }
                     }
                 }
                 if (intersections % 2 == 1) {
@@ -72,14 +100,14 @@ class Day18 {
                 }
             }
         }
-        return pointsInsideTheGrid
+        return pointsInsideTheGrid.also { it.println() }
     }
 
     fun part2(input: List<String>): Int {
         TODO()
     }
 
-    data class Directions(val direction: Direction, val moves: Int, val rgbColor: String)
+    private data class Directions(val direction: Direction, val moves: Int, val rgbColor: String)
 
     private fun parseInput(input: List<String>): List<Directions> {
         val lineData = "(.) (\\d+) \\(#(.*)\\)".toRegex()
@@ -89,7 +117,7 @@ class Day18 {
         }
     }
 
-    enum class Direction(val changeY: Int, val changeX: Int) {
+    private enum class Direction(val changeY: Int, val changeX: Int) {
         U(-1, 0),
         D(1, 0),
         L(0, -1),
