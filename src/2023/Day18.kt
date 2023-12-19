@@ -4,8 +4,8 @@ import println
 import readInput
 
 fun main() {
-    check(Day18().part1(readInput("2023/Day18_Test")) == 62).also { "Check Part1 passed".println() }
-    Day18().part1(readInput("2023/Day18")).println()
+//    check(Day18().part1(readInput("2023/Day18_Test")) == 62).also { "Check Part1 passed".println() }
+//    Day18().part1(readInput("2023/Day18")).println()
 
     check(Day18().part2(readInput("2023/Day18_Test")) == 94).also { "Check Part2 passed".println() }
     Day18().part2(readInput("2023/Day18")).println()
@@ -27,7 +27,18 @@ class Day18 {
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val directions = parseInputPart2(input)
+
+        directions.println()
+        val xOffset = 0
+        val yOffset = 0
+
+        // Do this rough so we allocate enough spots and don't have to resize later
+        val gridHeight = yOffset + 1_186_328
+        val gridWidth = xOffset + 1_186_328
+        // HA what a joke
+
+        return solve(gridWidth, gridHeight, xOffset, yOffset, directions)
     }
 
     private fun solve(
@@ -40,6 +51,7 @@ class Day18 {
         "Grid is ${gridWidth}x$gridHeight".println()
 
         val grid = MutableList(gridHeight) { MutableList(gridWidth) { _ -> '.' } }
+        "Grid is inited".println()
         var currentX = xOffset
         var currentY = yOffset
 
@@ -124,6 +136,24 @@ class Day18 {
         return input.map { line ->
             val (direction, moves) = lineData.find(line)!!.destructured
             Directions(Direction.valueOf(direction), moves.toInt())
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun parseInputPart2(input: List<String>): List<Directions> {
+        val lineData = ".*\\(#(.*)\\)".toRegex()
+        return input.map { line ->
+            val (rgbColor) = lineData.find(line)!!.destructured
+            val direction = when (rgbColor.last()) {
+                '0' -> Direction.R
+                '1' -> Direction.D
+                '2' -> Direction.L
+                '3' -> Direction.U
+                else -> throw IllegalArgumentException("What is this ${rgbColor.last()}")
+            }
+            val moves = rgbColor.dropLast(1).hexToInt()
+
+            Directions(direction, moves)
         }
     }
 
