@@ -4,129 +4,50 @@ import println
 import readInput
 
 fun main() {
-//    check(Day18().part1(readInput("2023/Day18_Test")) == 62).also { "Check Part1 passed".println() }
-//    Day18().part1(readInput("2023/Day18")).println()
+    check(Day18().part1(readInput("2023/Day18_Test")) == 62L).also { "Check Part1 passed".println() }
+    Day18().part1(readInput("2023/Day18")).println()
 
-    check(Day18().part2(readInput("2023/Day18_Test")) == 94).also { "Check Part2 passed".println() }
+    check(Day18().part2(readInput("2023/Day18_Test")) == 952408144115L).also { "Check Part2 passed".println() }
     Day18().part2(readInput("2023/Day18")).println()
 }
 
 class Day18 {
-    fun part1(input: List<String>): Int {
+    fun part1(input: List<String>): Long {
         val directions = parseInput(input)
 
-        // For the full dataset, we have to increase our X, Y offset as we travel left from the start, we don't start at 0,0
-        val xOffset = 169
-        val yOffset = 150
-
-        // Do this rough so we allocate enough spots and don't have to resize later
-        val gridHeight = yOffset + 75
-        val gridWidth = xOffset + 340
-
-        return solve(gridWidth, gridHeight, xOffset, yOffset, directions)
+        return solve(directions)
     }
 
-    fun part2(input: List<String>): Int {
+    fun part2(input: List<String>): Long {
         val directions = parseInputPart2(input)
 
-        directions.println()
-        val xOffset = 0
-        val yOffset = 0
-
-        // Do this rough so we allocate enough spots and don't have to resize later
-        val gridHeight = yOffset + 1_186_328
-        val gridWidth = xOffset + 1_186_328
-        // HA what a joke
-
-        return solve(gridWidth, gridHeight, xOffset, yOffset, directions)
+        return solve(directions)
     }
 
-    private fun solve(
-        gridWidth: Int,
-        gridHeight: Int,
-        xOffset: Int,
-        yOffset: Int,
-        directions: List<Directions>
-    ): Int {
-        "Grid is ${gridWidth}x$gridHeight".println()
+    private fun solve(directions: List<Directions>): Long {
+        var currentX = 0
+        var currentY = 0
+        val coordinates = mutableListOf(0 to 0)
+        var steps = 0
 
-        val grid = MutableList(gridHeight) { MutableList(gridWidth) { _ -> '.' } }
-        "Grid is inited".println()
-        var currentX = xOffset
-        var currentY = yOffset
-
-        directions.forEachIndexed { index, (direction, moves) ->
-            val nextDirection = directions[if (index + 1 == directions.size) 0 else index + 1].direction
-            for (i in 1..moves) {
-                currentY += direction.changeY
-                currentX += direction.changeX
-                grid[currentY][currentX] = when (direction) {
-                    Direction.U -> when {
-                        i == moves && nextDirection == Direction.L -> '┐'
-                        i == moves && nextDirection == Direction.R -> '┌'
-                        else -> '│'
-                    }
-
-                    Direction.D -> when {
-                        i == moves && nextDirection == Direction.R -> '└'
-                        i == moves && nextDirection == Direction.L -> '┘'
-                        else -> '│'
-                    }
-
-                    Direction.L -> when {
-                        i == moves && nextDirection == Direction.D -> '┌'
-                        i == moves && nextDirection == Direction.U -> '└'
-                        else -> '─'
-                    }
-
-                    Direction.R -> when {
-                        i == moves && nextDirection == Direction.D -> '┐'
-                        i == moves && nextDirection == Direction.U -> '┘'
-                        else -> '─'
-                    }
-                }
-            }
+        directions.forEach { (direction, moves) ->
+            currentY += direction.changeY * moves
+            currentX += direction.changeX * moves
+            coordinates.add(currentX to currentY)
+            steps += moves
         }
 
-        // grid.joinToString("\n") { it.map { if (it) "#" else "." }.joinToString("") }.println()
+        // Area of a Polygon - https://www.wikihow.com/Calculate-the-Area-of-a-Polygon
+        val area = coordinates.zipWithNext()
+            .sumOf { (first, second) ->
+                val (x1, y1) = first
+                val (x2, y2) = second
 
-        // Add all edges up to the path, so we can count intersections next
-        val path = mutableListOf<Pair<Int, Int>>()
-        for (y in grid.indices) {
-            for (x in grid[y].indices) {
-                if (grid[y][x] != '.') {
-                    path.add(y to x)
-                }
-            }
-        }
-
-        val ignoredEdges = listOf('─', '└', '┘')
-        var pointsInsideTheGrid = 0
-        for ((y, line) in grid.withIndex()) {
-            for ((x, _) in line.withIndex()) {
-                if (y to x in path) { // Edges are counted
-                    pointsInsideTheGrid++
-                    continue
-                }
-
-                // Loop from current point's x to edge of grid
-                var intersections = 0
-                for (offset in 0..<(line.size - x)) {
-                    val currentCoordinate = y to x + offset
-                    if (currentCoordinate in path) {
-                        // Simulate we're shooting offset a bit, so we ignore -, L, J as intersections, otherwise we count edges too many times
-                        val pipe = grid[y][x + offset]
-                        if (pipe !in ignoredEdges) {
-                            intersections++
-                        }
-                    }
-                }
-                if (intersections % 2 == 1) {
-                    pointsInsideTheGrid += 1
-                }
-            }
-        }
-        return pointsInsideTheGrid.also { it.println() }
+                (x1 * y2.toLong()) - (x2 * y1.toLong())
+            } / 2
+        // Take the perimeter and divide by 2 to get the new area we have to add, I have no clue why it's +1 but it works
+        val perimeter = steps / 2 + 1
+        return area + perimeter
     }
 
     private data class Directions(val direction: Direction, val moves: Int)
