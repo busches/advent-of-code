@@ -41,12 +41,10 @@ class Day19 {
             val (workflowKey, ranges) = workflowsToProcess.removeFirst()
 
             val currentWorkflow = workflows[workflowKey]!!
-//            "Processing ${currentWorkflow} for $ranges".println()
             val defaultRanges = ranges.toMutableMap()
             currentWorkflow.rules.forEach { rule ->
-//                "$rule".println()
                 val conditionMatchRanges = defaultRanges.toMutableMap()
-                val rangeForRule = ranges[rule.field]!!
+                val rangeForRule = defaultRanges[rule.field]!!
                 if (rule.expression == ">") {
                     conditionMatchRanges[rule.field] = max(rangeForRule.first, rule.value + 1)..rangeForRule.last
                     defaultRanges[rule.field] = rangeForRule.first..min(rangeForRule.last, rule.value)
@@ -54,8 +52,6 @@ class Day19 {
                     conditionMatchRanges[rule.field] = rangeForRule.first..min(rangeForRule.last, rule.value - 1)
                     defaultRanges[rule.field] = max(rangeForRule.first, rule.value)..rangeForRule.last
                 }
-//                "Updated condition ${rule.field} from ${ranges[rule.field]} to ${conditionMatchRanges[rule.field]}".println()
-//                "Updated defaultRanges ${rule.field} from ${ranges[rule.field]} to ${defaultRanges[rule.field]}".println()
 
                 when (rule.nextWorkflow) {
                     "A" -> {
@@ -129,7 +125,7 @@ class Day19 {
                     val (field, expression, value, nextWorkflow) = ruleRegex.find(rule)!!.destructured
                     Rule(field, expression, value.toInt(), nextWorkflow)
                 }
-                workflows[key] = Workflow(rules, default)
+                workflows[key] = Workflow(key, rules, default)
             } else {
                 val (x, m, a, s) = partRegex.find(line)!!.destructured
                 parts.add(Part(x.toInt(), m.toInt(), a.toInt(), s.toInt()))
@@ -139,7 +135,7 @@ class Day19 {
         return workflows to parts
     }
 
-    data class Workflow(val rules: List<Rule>, val default: String)
+    data class Workflow(val name: String, val rules: List<Rule>, val default: String)
     data class Rule(val field: String, val expression: String, val value: Int, val nextWorkflow: String)
     data class Part(val x: Int, val m: Int, val a: Int, val s: Int)
 }
