@@ -2,12 +2,13 @@ package `2023`
 
 import println
 import readInput
+import kotlin.math.max
+import kotlin.math.min
 
 fun main() {
     check(Day19().part1(readInput("2023/Day19_Test")) == 19114L).also { "Check Part1 passed".println() }
     Day19().part1(readInput("2023/Day19")).println()
-
-    check(Day19().part2(readInput("2023/Day19_Test")) == 952408144115L).also { "Check Part2 passed".println() }
+    check(Day19().part2(readInput("2023/Day19_Test")) == 167_409_079_868_000L).also { "Check Part2 passed".println() }
     Day19().part2(readInput("2023/Day19")).println()
 }
 
@@ -18,6 +19,69 @@ class Day19 {
         return parts
             .filter { part -> processPart(workflows, "in", part) }
             .sumOf { (x, m, a, s) -> x.toLong() + m + a + s }
+    }
+
+    fun part2(input: List<String>): Long {
+        val (workflows, _) = parseInput(input)
+
+        // Start with these mofos
+        val allTheRanges = mapOf(
+            "x" to 1..4000,
+            "m" to 1..4000,
+            "a" to 1..4000,
+            "s" to 1..4000,
+        )
+
+        val workflowsToProcess = ArrayDeque<Pair<String, Map<String, IntRange>>>()
+        workflowsToProcess += "in" to allTheRanges
+
+        var combos = 0L
+        while (workflowsToProcess.isNotEmpty()) {
+
+            val (workflowKey, ranges) = workflowsToProcess.removeFirst()
+
+            val currentWorkflow = workflows[workflowKey]!!
+//            "Processing ${currentWorkflow} for $ranges".println()
+            val defaultRanges = ranges.toMutableMap()
+            currentWorkflow.rules.forEach { rule ->
+//                "$rule".println()
+                val conditionMatchRanges = defaultRanges.toMutableMap()
+                val rangeForRule = ranges[rule.field]!!
+                if (rule.expression == ">") {
+                    conditionMatchRanges[rule.field] = max(rangeForRule.first, rule.value + 1)..rangeForRule.last
+                    defaultRanges[rule.field] = rangeForRule.first..min(rangeForRule.last, rule.value)
+                } else {
+                    conditionMatchRanges[rule.field] = rangeForRule.first..min(rangeForRule.last, rule.value - 1)
+                    defaultRanges[rule.field] = max(rangeForRule.first, rule.value)..rangeForRule.last
+                }
+//                "Updated condition ${rule.field} from ${ranges[rule.field]} to ${conditionMatchRanges[rule.field]}".println()
+//                "Updated defaultRanges ${rule.field} from ${ranges[rule.field]} to ${defaultRanges[rule.field]}".println()
+
+                when (rule.nextWorkflow) {
+                    "A" -> {
+                        val newCombos =
+                            conditionMatchRanges.values.fold(1L) { acc, range -> acc * (range.last - range.first + 1) }
+                        "Adding conditional ranges: $conditionMatchRanges for $newCombos to $combos".println()
+                        combos += newCombos
+                    }
+
+                    "R" -> {} // Do nothing
+                    else -> workflowsToProcess.add(rule.nextWorkflow to conditionMatchRanges)
+                }
+            }
+            when (currentWorkflow.default) {
+                "A" -> {
+                    val newCombos = defaultRanges.values.fold(1L) { acc, range -> acc * (range.last - range.first + 1) }
+                    "Adding default ranges: $defaultRanges for $newCombos to $combos".println()
+                    combos += newCombos
+                }
+
+                "R" -> {} // Do nothing
+                else -> workflowsToProcess.add(currentWorkflow.default to defaultRanges)
+            }
+        }
+
+        return combos.also { it.println() }
     }
 
     private fun processPart(workflows: Map<String, Workflow>, workflowKey: String, part: Part): Boolean {
@@ -42,10 +106,6 @@ class Day19 {
             "R" -> false
             else -> processPart(workflows, nextWorkflow, part)
         }
-    }
-
-    fun part2(input: List<String>): Long {
-        TODO()
     }
 
     private val workflowRegex = "(.*)\\{(.*)}".toRegex()
