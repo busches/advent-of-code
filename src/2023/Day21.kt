@@ -5,7 +5,7 @@ import readInput
 import kotlin.collections.ArrayDeque
 
 fun main() {
-//    check(Day21().part1(readInput("2023/Day21_Test")) == 16).also { "Check Part1 passed".println() }
+    check(Day21().part1(readInput("2023/Day21_Test"), 6) == 16).also { "Check Part1 passed".println() }
     Day21().part1(readInput("2023/Day21")).println()
 
     check(Day21().part2(readInput("2023/Day21_Test2")) == 11687500L).also { "Check Part2 passed".println() }
@@ -13,20 +13,19 @@ fun main() {
 }
 
 class Day21 {
-    fun part1(input: List<String>): Int {
+    fun part1(input: List<String>, totalSteps: Int = 64): Int {
         val grid = input.map { it.toList() }
 
         val startY = grid.indexOfFirst { it.contains('S') }
         val startX = grid[startY].indexOf('S')
 
-        val start = ElfWalker(startY, startX, Direction.UP, 0)
+        val start = ElfWalker(startY, startX, Direction.UP, 0, totalSteps)
 
         val queue = ArrayDeque<ElfWalker>()
         val visited = mutableSetOf<ElfWalker>()
         val endingSpots = mutableSetOf<ElfWalker>()
         queue += start
 
-        var lastNumberOfStepsSeen = 1
         while (queue.isNotEmpty()) {
             val elfWalker = queue.removeFirst()
 
@@ -57,7 +56,7 @@ class Day21 {
                     'O'
                 } else c
             }
-        }.joinToString("\n") { it.joinToString("") } .println()
+        }.joinToString("\n") { it.joinToString("") }.println()
 
         return endingSpots.map { it.y to it.x }.toSet().size.also { it.println() }
     }
@@ -76,9 +75,10 @@ class Day21 {
         val x: Int,
         val direction: Direction,
         val numberOfSteps: Int,
+        val totalSteps: Int,
     ) {
         fun nextMoves(): List<Direction> {
-            return if (numberOfSteps < 64) {
+            return if (numberOfSteps < totalSteps) {
                 listOf(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT)
             } else {
                 emptyList()
@@ -86,7 +86,12 @@ class Day21 {
         }
 
         fun move(direction: Direction): ElfWalker {
-            return ElfWalker(y + direction.changeY, x + direction.changeX, direction, numberOfSteps + 1)
+            return copy(
+                y = y + direction.changeY,
+                x = x + direction.changeX,
+                direction = direction,
+                numberOfSteps = numberOfSteps + 1
+            )
         }
     }
 }
