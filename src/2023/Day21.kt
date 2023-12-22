@@ -26,7 +26,7 @@ class Day21 {
         val startY = grid.indexOfFirst { it.contains('S') }
         val startX = grid[startY].indexOf('S')
 
-        val start = ElfWalker(startY, startX, Direction.UP, 0, totalSteps)
+        val start = ElfWalker(startY, startX, 0, totalSteps)
 
         val queue = ArrayDeque<ElfWalker>()
         val visited = mutableSetOf<ElfWalker>()
@@ -75,7 +75,7 @@ class Day21 {
         val startY = grid.indexOfFirst { it.contains('S') }
         val startX = grid[startY].indexOf('S')
 
-        val start = ElfWalker(startY, startX, Direction.UP, 0, totalSteps)
+        val start = ElfWalker(startY, startX, 0, totalSteps)
 
         val queue = PriorityQueue<ElfWalker>(compareBy { elf -> elf.numberOfSteps })
         val visited = mutableSetOf<ElfWalker>()
@@ -131,7 +131,6 @@ class Day21 {
     private data class ElfWalker(
         val y: Int,
         val x: Int,
-        val direction: Direction,
         val numberOfSteps: Int,
         val totalSteps: Int,
         val crossedX: Int = 0,
@@ -149,7 +148,6 @@ class Day21 {
             return copy(
                 y = y + direction.changeY,
                 x = x + direction.changeX,
-                direction = direction,
                 numberOfSteps = numberOfSteps + 1
             )
         }
