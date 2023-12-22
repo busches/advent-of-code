@@ -2,8 +2,8 @@ package `2023`
 
 import println
 import readInput
+import java.util.*
 import kotlin.collections.ArrayDeque
-import kotlin.math.absoluteValue
 
 fun main() {
     check(Day21().part1(readInput("2023/Day21_Test"), 6) == 16).also { "Check Part1 passed".println() }
@@ -77,7 +77,7 @@ class Day21 {
 
         val start = ElfWalker(startY, startX, Direction.UP, 0, totalSteps)
 
-        val queue = ArrayDeque<ElfWalker>()
+        val queue = PriorityQueue<ElfWalker>(compareBy { elf -> elf.numberOfSteps })
         val visited = mutableSetOf<ElfWalker>()
         val endingSpots = mutableSetOf<ElfWalker>()
         queue += start
@@ -86,7 +86,7 @@ class Day21 {
         val maxY = grid.indices.last
 
         while (queue.isNotEmpty()) {
-            val elfWalker = queue.removeFirst()
+            val elfWalker = queue.remove()
 
             if (!visited.add(elfWalker)) {
                 continue // Already been here
@@ -115,8 +115,9 @@ class Day21 {
                 }
 
                 val spaceType = grid[newWalker.y][newWalker.x]
-                if (spaceType == '.' || spaceType == 'S')
+                if (spaceType == '.' || spaceType == 'S') {
                     queue.add(newWalker)
+                }
             }
         }
 
