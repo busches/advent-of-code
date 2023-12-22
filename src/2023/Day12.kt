@@ -25,6 +25,8 @@ class Day12 {
     }
 
     fun part2(input: List<String>): Long {
+
+        // TODO Need to work through a state machine that will track if we're on a group or not and if the next character is valid to finish the group, etc.
         return input.sumOf { record ->
             val (springs, keys) = record.split(" ")
             val brokenGears = List(5) {keys}.joinToString(",").split(',').map { it.toInt() }
