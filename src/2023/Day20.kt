@@ -1,6 +1,7 @@
 package `2023`
 
-import `2023`.Day20.Pulse.*
+import `2023`.Day20.Pulse.HIGH
+import `2023`.Day20.Pulse.LOW
 import println
 import readInput
 
@@ -8,7 +9,6 @@ fun main() {
     check(Day20().part1(readInput("2023/Day20_Test")) == 32000000L).also { "Check Part1 passed".println() }
     check(Day20().part1(readInput("2023/Day20_Test2")) == 11687500L).also { "Check Part1-2 passed".println() }
     Day20().part1(readInput("2023/Day20")).println()
-    check(Day20().part2(readInput("2023/Day20_Test")) == 167_409_079_868_000L).also { "Check Part2 passed".println() }
     Day20().part2(readInput("2023/Day20")).println()
 }
 
@@ -36,7 +36,36 @@ class Day20 {
     }
 
     fun part2(input: List<String>): Long {
-        TODO()
+        val modules = parseInput(input).toMutableMap()
+
+        // Find the inputs to rx's input, which is cl, and make them a new map to track button presses when it goes to High
+        val rxInputs = modules.filterValues { it is Conjunction && it.receivers.contains("cl") }
+            .mapValues { 0L }
+            .toMutableMap()
+
+        generateSequence(1) { it + 1 }.forEach { buttonPresses ->
+            val pulseQueue = ArrayDeque<Triple<String, Pulse, String>>()
+            pulseQueue += Triple("button", LOW, "broadcaster")
+            while (pulseQueue.isNotEmpty()) {
+                val (sender, pulse, moduleName) = pulseQueue.removeFirst()
+
+                // Determine the first time each of our inputs get a High pulse
+                if (rxInputs[sender] == 0L && pulse == HIGH) {
+                    rxInputs[sender] = buttonPresses.toLong()
+                    // If all have gotten a High, we can multiply them all to determine when it'd happen
+                    if (rxInputs.values.all { it > 0L }) {
+                        return rxInputs.values.fold(1L, Long::times)
+                    }
+                }
+
+                val module = modules.getOrPut(moduleName) {
+                    Untyped(moduleName)
+                }
+                pulseQueue.addAll(module.receive(sender, pulse))
+            }
+        }
+
+        throw IllegalArgumentException("I'm broken")
     }
 
     private val moduleConfiguration = "[%&]?(.*) -> (.*)".toRegex()
@@ -99,7 +128,7 @@ class Day20 {
 
     private data class Conjunction(
         override val name: String,
-        private val receivers: List<String>,
+        val receivers: List<String>,
         private var lastPulse: MutableMap<String, Pulse>,
         override var lowPulses: Int = 0,
         override var highPulses: Int = 0
