@@ -3,13 +3,20 @@ package `2023`
 import println
 import readInput
 import kotlin.collections.ArrayDeque
+import kotlin.math.absoluteValue
 
 fun main() {
     check(Day21().part1(readInput("2023/Day21_Test"), 6) == 16).also { "Check Part1 passed".println() }
     Day21().part1(readInput("2023/Day21")).println()
 
-    check(Day21().part2(readInput("2023/Day21_Test2")) == 11687500L).also { "Check Part2 passed".println() }
-    Day21().part2(readInput("2023/Day21")).println()
+    check(Day21().part2(readInput("2023/Day21_Test"), 6) == 16).also { "Check Part2-1 passed".println() }
+    check(Day21().part2(readInput("2023/Day21_Test"), 10) == 50).also { "Check Part2-2 passed".println() }
+    check(Day21().part2(readInput("2023/Day21_Test"), 50) == 1594).also { "Check Part2-3 passed".println() }
+    check(Day21().part2(readInput("2023/Day21_Test"), 100) == 6536).also { "Check Part2-4 passed".println() }
+    check(Day21().part2(readInput("2023/Day21_Test"), 500) == 167004).also { "Check Part2-5 passed".println() }
+    check(Day21().part2(readInput("2023/Day21_Test"), 1000) == 668697).also { "Check Part2-6 passed".println() }
+    check(Day21().part2(readInput("2023/Day21_Test"), 5000) == 16733044).also { "Check Part2-7 passed".println() }
+    Day21().part2(readInput("2023/Day21"), 26_501_365).println()
 }
 
 class Day21 {
@@ -62,8 +69,58 @@ class Day21 {
     }
 
 
-    fun part2(input: List<String>): Long {
-        TODO()
+    fun part2(input: List<String>, totalSteps: Int): Int {
+        val grid = input.map { it.toList() }
+
+        val startY = grid.indexOfFirst { it.contains('S') }
+        val startX = grid[startY].indexOf('S')
+
+        val start = ElfWalker(startY, startX, Direction.UP, 0, totalSteps)
+
+        val queue = ArrayDeque<ElfWalker>()
+        val visited = mutableSetOf<ElfWalker>()
+        val endingSpots = mutableSetOf<ElfWalker>()
+        queue += start
+
+        val maxX = grid.first().indices.last
+        val maxY = grid.indices.last
+
+        while (queue.isNotEmpty()) {
+            val elfWalker = queue.removeFirst()
+
+            if (!visited.add(elfWalker)) {
+                continue // Already been here
+            }
+
+            if (elfWalker.nextMoves().isEmpty()) {
+                val xMultiplier = elfWalker.crossedX * (maxX + 1)
+                val newX = if (xMultiplier >= 0) elfWalker.x + xMultiplier else elfWalker.x * -1 + xMultiplier
+                val yMultiplier = elfWalker.crossedY * (maxY + 1)
+                val newY = if (yMultiplier >= 0) elfWalker.y + yMultiplier else elfWalker.y * -1 + yMultiplier
+                val updatedWalker = elfWalker.copy(x = newX, y = newY)
+                endingSpots.add(updatedWalker)
+            }
+
+            for (direction in elfWalker.nextMoves()) {
+                var newWalker = elfWalker.move(direction)
+                // Bounds check is a lie, we are infinite!
+                if (newWalker.x < 0) {
+                    newWalker = newWalker.copy(x = maxX, crossedX = newWalker.crossedX - 1)
+                } else if (newWalker.y < 0) {
+                    newWalker = newWalker.copy(y = maxY, crossedY = newWalker.crossedY - 1)
+                } else if (newWalker.x > maxX) {
+                    newWalker = newWalker.copy(x = 0, crossedX = newWalker.crossedX + 1)
+                } else if (newWalker.y > maxY) {
+                    newWalker = newWalker.copy(y = 0, crossedY = newWalker.crossedY + 1)
+                }
+
+                val spaceType = grid[newWalker.y][newWalker.x]
+                if (spaceType == '.' || spaceType == 'S')
+                    queue.add(newWalker)
+            }
+        }
+
+        return endingSpots.map { it.y to it.x }.toSet().size.also { it.println() }
     }
 
     private enum class Direction(val changeY: Int, val changeX: Int) {
@@ -76,6 +133,8 @@ class Day21 {
         val direction: Direction,
         val numberOfSteps: Int,
         val totalSteps: Int,
+        val crossedX: Int = 0,
+        val crossedY: Int = 0,
     ) {
         fun nextMoves(): List<Direction> {
             return if (numberOfSteps < totalSteps) {
