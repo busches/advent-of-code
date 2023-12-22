@@ -15,11 +15,11 @@ fun main() {
 
 
 class Day17 {
-    enum class Direction(val changeY: Int, val changeX: Int) {
+    private enum class Direction(val changeY: Int, val changeX: Int) {
         UP(-1, 0), DOWN(1, 0), LEFT(0, -1), RIGHT(0, 1),
     }
 
-    interface Crucible {
+    private interface Crucible {
         val y: Int
         val x: Int
         val direction: Direction
@@ -28,7 +28,7 @@ class Day17 {
         fun move(direction: Direction): Crucible
     }
 
-    data class FirstCrucible(
+    private data class FirstCrucible(
         override val y: Int,
         override val x: Int,
         override val direction: Direction,
@@ -60,7 +60,7 @@ class Day17 {
         }
     }
 
-    data class UltraCrucible(
+    private data class UltraCrucible(
         override val y: Int,
         override val x: Int,
         override val direction: Direction,
