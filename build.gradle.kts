@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.9.21"
-    kotlin("plugin.serialization") version "1.9.21"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.serialization") version "2.1.0"
 }
 
 repositories {
@@ -20,6 +20,6 @@ tasks {
     }
 
     wrapper {
-        gradleVersion = "8.5"
+        gradleVersion = "8.11.1"
     }
 }
