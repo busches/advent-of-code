@@ -19,7 +19,7 @@ fun main() {
     )
     check(part1(sampleInput) == 605)
 
-    val input = readInput("2015/Day09")
+    val input = readInput("2024/Day09")
     part1(input).println()
 
     check(part2(sampleInput) == 982)
