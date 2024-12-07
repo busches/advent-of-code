@@ -20,7 +20,8 @@ fun main() {
         // we then apply each operation to the running total
         return equations.flatMap { (total, numbers) ->
             val startingNumber = numbers.first()
-            numbers.takeLast(numbers.size - 1)
+            numbers
+                .drop(1)
                 .fold(listOf(startingNumber)) { runningTotals, nextNumber ->
                     runningTotals.flatMap { runningTotal ->
                         operations.mapNotNull { operation ->
