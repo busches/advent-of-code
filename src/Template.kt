@@ -2,6 +2,7 @@ import println
 import readInput
 
 fun main() {
+    val start = System.currentTimeMillis()
 
     fun part1(input: List<String>): Int {
         TODO()
@@ -24,4 +25,6 @@ fun main() {
 
     check(part2(sampleInput) == 982)
     part2(input).println()
+
+    "${(System.currentTimeMillis() - start)} milliseconds".println()
 }
