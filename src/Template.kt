@@ -13,11 +13,11 @@ fun main() {
         TODO()
     }
 
-    val sampleInput = listOf(
-        "London to Dublin = 464",
-        "London to Belfast = 518",
-        "Dublin to Belfast = 141"
-    )
+    val sampleInput = """
+        London to Dublin = 464
+        London to Belfast = 518
+        Dublin to Belfast = 141
+    """.trimIndent().lines()
     check(part1(sampleInput) == 605)
 
     val input = readInput("2024/Day09")
