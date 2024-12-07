@@ -7,7 +7,7 @@ fun main() {
     val start = System.currentTimeMillis()
 
     val numberRegex = """\d+""".toRegex()
-    fun part1(input: List<String>): Long {
+    fun solve(input: List<String>, operations: List<(Long, Long) -> Long>): Long {
         val equations = input.map { line ->
             val total = line.substringBefore(":").toLong()
             val numbers = numberRegex.findAll(line.substringAfter(":")).map {
@@ -18,55 +18,33 @@ fun main() {
 
         return equations.flatMap { (total, numbers) ->
             val mutableNumbers = numbers.toMutableList()
-            var runningTotals  = listOf(mutableNumbers.removeFirst())
+            var runningTotals = listOf(mutableNumbers.removeFirst())
 
-            while(mutableNumbers.isNotEmpty()) {
+            while (mutableNumbers.isNotEmpty()) {
                 val nextNumber = mutableNumbers.removeFirst()
                 runningTotals = runningTotals.flatMap { runningTotal ->
-                    val addTotal = (runningTotal + nextNumber).let {
-                        if (it > total) null  else it
+                    operations.mapNotNull { operation ->
+                        (operation(runningTotal, nextNumber)).let {
+                            if (it > total) null else it
+                        }
                     }
-                    val mulTotal = (runningTotal * nextNumber).let {
-                        if (it > total) null  else it
-                    }
-                    listOfNotNull(addTotal, mulTotal)
                 }
             }
             runningTotals.filter { it == total }.toSet() // Set as there can be more than one way to calculate it
         }.sum()
+    }
 
+    fun part1(input: List<String>): Long {
+        return solve(input, listOf({ a: Long, b: Long -> a + b }, { a: Long, b: Long -> a * b }))
     }
 
     fun part2(input: List<String>): Long {
-        val equations = input.map { line ->
-            val total = line.substringBefore(":").toLong()
-            val numbers = numberRegex.findAll(line.substringAfter(":")).map {
-                it.value.toLong()
-            }.toList()
-            total to numbers
-        }
-
-        return equations.flatMap { (total, numbers) ->
-            val mutableNumbers = numbers.toMutableList()
-            var runningTotals  = listOf(mutableNumbers.removeFirst())
-
-            while(mutableNumbers.isNotEmpty()) {
-                val nextNumber = mutableNumbers.removeFirst()
-                runningTotals = runningTotals.flatMap { runningTotal ->
-                    val addTotal = (runningTotal + nextNumber).let {
-                        if (it > total) null  else it
-                    }
-                    val mulTotal = (runningTotal * nextNumber).let {
-                        if (it > total) null  else it
-                    }
-                    val concatTotal = (runningTotal.toString() + nextNumber.toString()).toLong().let {
-                        if (it > total) null  else it
-                    }
-                    listOfNotNull(addTotal, mulTotal, concatTotal)
-                }
-            }
-            runningTotals.filter { it == total }.toSet() // Set as there can be more than one way to calculate it
-        }.sum()
+        return solve(input,
+            listOf(
+                { a: Long, b: Long -> a + b },
+                { a: Long, b: Long -> a * b },
+                { a: Long, b: Long -> (a.toString() + b.toString()).toLong() }
+            ))
     }
 
     val sampleInput = """
