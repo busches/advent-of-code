@@ -4,6 +4,7 @@ import println
 import readInput
 
 fun main() {
+    val start = System.currentTimeMillis()
 
     fun nextDirection(facing: Char): Pair<Int, Int> {
         return when (facing) {
@@ -25,8 +26,7 @@ fun main() {
         }
     }
 
-    fun solve(originalMap: List<MutableList<Char>>): Triple<List<MutableList<Char>>, MutableSet<Triple<Int, Int, Char>>, Boolean> {
-        val map = originalMap.toMutableList().map { it.toMutableList() }
+    fun solve(map: List<List<Char>>): Pair<Set<Triple<Int, Int, Char>>, Boolean> {
         var currentPosition = -1 to -1
         for (y in map.indices) {
             for (x in map[y].indices) {
@@ -42,7 +42,6 @@ fun main() {
         var looping = false
         while (true) {
             val nextPosition = currentPosition + nextDirection(facing)
-            map[currentPosition.second][currentPosition.first] = 'X'
             if (!visited.add(Triple(currentPosition.first, currentPosition.second, facing))) {
                 // We're looping as we've been here before facing the same way
                 looping = true
@@ -57,35 +56,34 @@ fun main() {
             if (nextPositionBlocked) {
                 facing = turnRight(facing)
             } else {
-                map[nextPosition.second][nextPosition.first] = facing
                 currentPosition = nextPosition
             }
         }
-        return Triple(map, visited, looping)
+        return visited to looping
     }
 
     fun part1(input: List<String>): Int {
         val map = input.map { it.toMutableList() }
-        val solvedMap = solve(map)
+        val (visited, _) = solve(map)
 
-        return solvedMap.first.sumOf { line -> line.count { it == 'X' } }
+        return visited.map { (x, y, _) -> x to y }.toSet().size
     }
 
     fun part2(input: List<String>): Int {
         val map = input.map { it.toMutableList() }
-        val firstSolve = solve(map)
-        val startingPoint = firstSolve.second.first().let { it.first to it.second }
-        val visitedPoints = firstSolve.second
-            .map { it.first to it.second }
+        // Solve it once so we only add obstacles to visited places
+        val (visited, _) = solve(map)
+        val startingPoint = visited.first().let { (x, y, _) -> x to y }
+        val visitedPoints = visited
+            .map { (x, y, _) -> x to y }
             .toMutableSet()
             .apply { remove(startingPoint) }
 
-        return visitedPoints.count { point ->
-            val alteredMap = map.toMutableList().map { it.toMutableList() }.apply {
-                this[point.second][point.first] = '#'
-            }
-            val solvedMap = solve(alteredMap)
-            val looped = solvedMap.third
+        return visitedPoints.count { (x, y) ->
+            val alteredMap = map.toMutableList()
+                .map { it.toMutableList() }
+                .apply { this[y][x] = '#' }
+            val (_, looped) = solve(alteredMap)
             looped
         }
     }
@@ -109,6 +107,7 @@ fun main() {
 
     check(part2(sampleInput) == 6)
     part2(input).println()
+    "Ran in ${(System.currentTimeMillis() - start)} milliseconds".println()
 }
 
 private operator fun Pair<Int, Int>.plus(currentPosition: Pair<Int, Int>): Pair<Int, Int> {
