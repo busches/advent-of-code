@@ -16,21 +16,23 @@ fun main() {
             total to numbers
         }
 
+        // Loop over all equations, starting with the first number in the list
+        // we then apply each operation to the running total
         return equations.flatMap { (total, numbers) ->
-            val mutableNumbers = numbers.toMutableList()
-            var runningTotals = listOf(mutableNumbers.removeFirst())
-
-            while (mutableNumbers.isNotEmpty()) {
-                val nextNumber = mutableNumbers.removeFirst()
-                runningTotals = runningTotals.flatMap { runningTotal ->
-                    operations.mapNotNull { operation ->
-                        (operation(runningTotal, nextNumber)).let {
-                            if (it > total) null else it
+            val startingNumber = numbers.first()
+            numbers.takeLast(numbers.size - 1)
+                .fold(listOf(startingNumber)) { runningTotals, nextNumber ->
+                    runningTotals.flatMap { runningTotal ->
+                        operations.mapNotNull { operation ->
+                            (operation(runningTotal, nextNumber)).let {
+                                // If we've already exceeded the total, no reason to keep trying new operations
+                                if (it > total) null else it
+                            }
                         }
                     }
                 }
-            }
-            runningTotals.filter { it == total }.toSet() // Set as there can be more than one way to calculate it
+                .filter { it == total }
+                .toSet() // Set as there can be more than one way to calculate it
         }.sum()
     }
 
