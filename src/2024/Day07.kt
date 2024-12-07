@@ -18,22 +18,21 @@ fun main() {
 
         // Loop over all equations, starting with the first number in the list
         // we then apply each operation to the running total
-        return equations.flatMap { (total, numbers) ->
+        return equations.mapNotNull { (total, numbers) ->
             val startingNumber = numbers.first()
             numbers
                 .drop(1)
                 .fold(listOf(startingNumber)) { runningTotals, nextNumber ->
                     runningTotals.flatMap { runningTotal ->
                         operations.mapNotNull { operation ->
-                            (operation(runningTotal, nextNumber)).let {
+                            operation(runningTotal, nextNumber).let {
                                 // If we've already exceeded the total, no reason to keep trying new operations
                                 if (it > total) null else it
                             }
                         }
                     }
                 }
-                .filter { it == total }
-                .toSet() // Set as there can be more than one way to calculate it
+                .firstOrNull { it == total }
         }.sum()
     }
 
