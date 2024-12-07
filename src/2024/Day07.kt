@@ -34,17 +34,16 @@ fun main() {
         }.sum()
     }
 
+    val addition = { a: Long, b: Long -> a + b }
+    val multiplication = { a: Long, b: Long -> a * b }
+    val concatenation = { a: Long, b: Long -> (a.toString() + b.toString()).toLong() }
+
     fun part1(input: List<String>): Long {
-        return solve(input, listOf({ a: Long, b: Long -> a + b }, { a: Long, b: Long -> a * b }))
+        return solve(input, listOf(addition, multiplication))
     }
 
     fun part2(input: List<String>): Long {
-        return solve(input,
-            listOf(
-                { a: Long, b: Long -> a + b },
-                { a: Long, b: Long -> a * b },
-                { a: Long, b: Long -> (a.toString() + b.toString()).toLong() }
-            ))
+        return solve(input, listOf(addition, multiplication, concatenation))
     }
 
     val sampleInput = """
