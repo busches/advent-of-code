@@ -15,3 +15,10 @@ fun <T> List<T>.permutations(): List<List<T>> = when {
 fun <T> List<List<T>>.transpose() = with(this) {
     this@transpose[0].indices.map { i -> map { it[i] } }
 }
+
+// https://stackoverflow.com/a/56043547
+fun <T> List<T>.combinations(): Sequence<Pair<T, T>> = sequence {
+    for (i in 0 until size - 1)
+        for (j in i + 1 until size)
+            yield(this@combinations[i] to this@combinations[j])
+}

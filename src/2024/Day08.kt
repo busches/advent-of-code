@@ -2,6 +2,7 @@ package `2024`
 
 import println
 import readInput
+import utils.combinations
 
 data class Coordinate(val x: Int, val y: Int) {
     operator fun plus(other: Coordinate) = Coordinate(x + other.x, y + other.y)
@@ -133,10 +134,4 @@ fun main() {
     part2(input).println()
 
     "${(System.currentTimeMillis() - start)} milliseconds".println()
-}
-
-fun <T> List<T>.combinations(): Sequence<Pair<T, T>> = sequence {
-    for (i in 0 until size - 1)
-        for (j in i + 1 until size)
-            yield(this@combinations[i] to this@combinations[j])
 }
