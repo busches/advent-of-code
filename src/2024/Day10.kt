@@ -7,7 +7,7 @@ import java.util.*
 fun main() {
     val start = System.currentTimeMillis()
 
-    fun part1(input: List<String>): Int {
+    fun solve(input: List<String>): MutableList<Pair<Pair<Int, Int>, Pair<Int, Int>>> {
         val grid = input.map { row -> row.toList() }
         val trailHeads = buildList {
             grid.forEachIndexed { y, row ->
@@ -19,8 +19,8 @@ fun main() {
             }
         }
 
-        val trailsToSearch = ArrayDeque(trailHeads.map { it to it})
-        val trailHeadScores = mutableSetOf<Pair<Pair<Int, Int>, Pair<Int, Int>>>()
+        val trailsToSearch = ArrayDeque(trailHeads.map { it to it })
+        val trailHeadScores = mutableListOf<Pair<Pair<Int, Int>, Pair<Int, Int>>>()
         val searchPatterns = listOf(
             0 to 1,
             0 to -1,
@@ -46,13 +46,20 @@ fun main() {
                 }
             }
         }
+        return trailHeadScores
+    }
 
-        return trailHeadScores.size
+    fun part1(input: List<String>): Int {
+        val trailHeadScores = solve(input)
+
+        return trailHeadScores.distinct().size
     }
 
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val trailHeadScores = solve(input)
+
+        return trailHeadScores.size
     }
 
     val sampleInput = """
@@ -70,7 +77,7 @@ fun main() {
     val input = readInput("2024/Day10")
     part1(input).println()
 
-    check(part2(sampleInput) == 982)
+    check(part2(sampleInput) == 81)
     part2(input).println()
 
     "${(System.currentTimeMillis() - start)} milliseconds".println()
