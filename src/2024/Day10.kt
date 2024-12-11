@@ -30,14 +30,12 @@ fun main() {
         while (trailsToSearch.isNotEmpty()) {
             val (startingSpot, currentSpot) = trailsToSearch.removeFirst()
             val currentValue = grid[currentSpot.second][currentSpot.first]
-            "At $currentSpot with $currentValue".println()
             searchPatterns.forEach { pattern ->
                 val newSpot = currentSpot + pattern
                 if (newSpot.first in grid[0].indices && newSpot.second in grid.indices) {
                     val newSpotValue = grid[newSpot.second][newSpot.first]
                     if (newSpotValue.digitToInt() == currentValue.digitToInt() + 1) {
                         if (newSpotValue == '9') {
-                            "New spot is a 9 - $newSpot".println()
                             trailHeadScores.add(startingSpot to newSpot)
                         } else {
                             trailsToSearch.addFirst(startingSpot to newSpot)
