@@ -6,53 +6,49 @@ import readInput
 fun main() {
     val start = System.currentTimeMillis()
 
-    fun solve(input: List<String>, blinks: Int): Int {
+    fun solve(input: List<String>, blinks: Int): Long {
         val stones = input.first().split(" ").map { it.toLong() }
 
+        val stoneMap = stones.associateWith { stone -> stones.count { it == stone }.toLong() }.toMutableMap()
 
-
-        val queue = ArrayDeque(stones.map { 0 to it })
-
-        var finishedStones = 0
-        while (queue.isNotEmpty()) {
-            // Probably need to cache the blinks and stone, as we'll recalculate some paths again and again
-            val (blink, stone) = queue.removeFirst()
-            if (blink == blinks) {
-                finishedStones++
-            } else {
-                when {
-                    stone == 0L -> queue.addFirst(blink + 1 to 1L)
+        return (1..blinks).fold(stoneMap) { startingStoneMap, blink ->
+            val updatedMap = mutableMapOf<Long, Long>()
+            startingStoneMap.keys.toSet().forEach { stone ->
+                val newStones = when {
+                    stone == 0L -> listOf(1L)
                     stone.toString().length % 2 == 0 -> {
                         val stringStone = stone.toString()
                         val half = stringStone.length / 2
-                        queue.addFirst(blink + 1 to stringStone.substring(0, half).toLong())
-                        queue.addFirst(blink + 1 to stringStone.substring(half).toLong())
+                        listOf(
+                            stringStone.substring(0, half).toLong(), stringStone.substring(half).toLong()
+                        )
                     }
-
                     else -> {
-                        queue.addFirst(blink + 1 to stone * 2024)
+                        listOf(stone * 2024)
                     }
                 }
+                newStones.forEach { newStone ->
+                    val currentCount = updatedMap.getOrDefault(newStone, 0L)
+                    updatedMap[newStone] = currentCount + startingStoneMap[stone]!!
+                }
             }
-        }
-
-
-        return finishedStones
+            updatedMap
+        }.values.sum()
     }
 
-    fun part1(input: List<String>): Int {
+    fun part1(input: List<String>): Long {
         return solve(input, 25)
     }
 
 
-    fun part2(input: List<String>): Int {
+    fun part2(input: List<String>): Long {
         return solve(input, 75)
     }
 
     val sampleInput = """
         125 17
     """.trimIndent().lines()
-    check(part1(sampleInput) == 55312)
+    check(part1(sampleInput) == 55312L)
 
     val input = readInput("2024/Day11")
     part1(input).println()
