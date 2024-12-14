@@ -4,13 +4,13 @@ import println
 import readInput
 import utils.combinations
 
-data class Coordinate(val x: Int, val y: Int) {
-    operator fun plus(other: Coordinate) = Coordinate(x + other.x, y + other.y)
-    operator fun minus(other: Coordinate) = Coordinate((x - other.x), (y - other.y))
-    operator fun times(multiplier: Int): Coordinate = Coordinate(x * multiplier, y * multiplier)
-}
-
 fun main() {
+    data class Coordinate(val x: Int, val y: Int) {
+        operator fun plus(other: Coordinate) = Coordinate(x + other.x, y + other.y)
+        operator fun minus(other: Coordinate) = Coordinate((x - other.x), (y - other.y))
+        operator fun times(multiplier: Int): Coordinate = Coordinate(x * multiplier, y * multiplier)
+    }
+
     val start = System.currentTimeMillis()
 
     fun part1CalculateAntennas(first: Coordinate, second: Coordinate, maxX: Int, maxY: Int): List<Coordinate> {
