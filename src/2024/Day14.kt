@@ -23,7 +23,7 @@ private data class Robot(val position: Coordinate, val movement: Coordinate) {
             y += gridHeight
         }
 
-        return copy(position = Coordinate(x, y), movement = movement)
+        return copy(position = Coordinate(x, y))
     }
 }
 
@@ -44,7 +44,7 @@ fun main() {
         prettyGrid.joinToString("\n") { it.joinToString("") }.println()
     }
 
-    fun part1(input: List<String>, gridWidth: Int = 101, gridHeight: Int = 103): Long {
+    fun solve(input: List<String>, gridWidth: Int, gridHeight: Int, seconds: Int): Long {
         var robots = input.map { line ->
             val (position, velocity) = line.replace("p=", "").replace("v=", "").split(" ")
             val (positionX, positionY) = position.split(",").map { it.toInt() }
@@ -56,14 +56,16 @@ fun main() {
             )
         }
 
-        repeat(100) { moveNumber ->
+        repeat(seconds) { moveNumber ->
             robots = robots.map {
                 it.move(gridWidth, gridHeight)
             }
-        }
 
-//        robots.println()
-//        prettyPrintGrid(gridHeight, gridWidth, robots)
+            if (seconds != 100) {
+                "Move number ${moveNumber + 1}".println()
+                prettyPrintGrid(gridHeight, gridWidth, robots)
+            }
+        }
 
         val widthMiddle = gridWidth / 2
         val heightMiddle = gridHeight / 2 // 3.5 - row 4 (which is index 3)
@@ -92,9 +94,14 @@ fun main() {
         return quadrants.values.fold(1L) { total, count -> total * count }
     }
 
+    fun part1(input: List<String>, gridWidth: Int = 101, gridHeight: Int = 103): Long {
+        return solve(input, gridWidth, gridHeight, 100)
+    }
 
-    fun part2(input: List<String>): Int {
-        TODO()
+
+    // This puzzle - wat
+    fun part2(input: List<String>): Long {
+        return solve(input, 101, 103, 10000)
     }
 
     val sampleInput = """
@@ -116,7 +123,6 @@ fun main() {
     val input = readInput("2024/Day14")
     part1(input).println()
 
-    check(part2(sampleInput) == 982)
     part2(input).println()
 
     "${(System.currentTimeMillis() - start)} milliseconds".println()
