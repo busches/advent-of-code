@@ -3,17 +3,16 @@ package `2024`
 import println
 import readInput
 
-private typealias Coordinates = Pair<Int, Int>
+private typealias Coordinates = Pair<Long, Long>
 
-private data class Move(val coords: Coordinates, val tokens: Int, val aPresses: Int, val bPresses: Int)
-sealed class Button(val move: Coordinates, val cost: Int) {}
-class AButton(xMovement: Int, yMovement: Int) : Button(xMovement to yMovement, 3) {
+sealed class Button(val move: Coordinates, val cost: Int)
+class AButton(xMovement: Long, yMovement: Long) : Button(xMovement to yMovement, 3) {
     override fun toString(): String {
         return "AButton(x='${move.first}', y='${move.second}', cost=$cost)"
     }
 }
 
-class BButton(xMovement: Int, yMovement: Int) : Button(xMovement to yMovement, 1) {
+class BButton(xMovement: Long, yMovement: Long) : Button(xMovement to yMovement, 1) {
     override fun toString(): String {
         return "BButton(x='${move.first}', y='${move.second}', cost=$cost)"
     }
@@ -24,7 +23,7 @@ private data class Game(val aButton: Button, val bButton: Button, val prize: Coo
 fun main() {
     val start = System.currentTimeMillis()
 
-    fun part1(input: List<String>): Int {
+    fun solve(input: List<String>, part2: Boolean): Long {
         val buttonRegex = """.*X\+(\d+), Y\+(\d+)""".toRegex()
         val prizeRegex = """.*X=(\d+), Y=(\d+)""".toRegex()
         val games = input.chunked(4).map { (buttonA, buttonB, prize, _) ->
@@ -32,60 +31,63 @@ fun main() {
             val (bX, bY) = buttonRegex.matchEntire(buttonB)!!.destructured
             val (prizeX, prizeY) = prizeRegex.matchEntire(prize)!!.destructured
 
+            var prizeCoordinates = Coordinates(prizeX.toLong(), prizeY.toLong())
+            if (part2) {
+                prizeCoordinates += 10000000000000L to 10000000000000L
+            }
             Game(
-                AButton(aX.toInt(), aY.toInt()),
-                BButton(bX.toInt(), bY.toInt()),
-                Coordinates(prizeX.toInt(), prizeY.toInt())
+                AButton(aX.toLong(), aY.toLong()),
+                BButton(bX.toLong(), bY.toLong()),
+                prizeCoordinates
             )
         }
 
-        return games.fold(0) { total, game ->
-            val startingMove = Move(0 to 0, 0, 0, 0)
-            val moves = ArrayDeque(listOf(startingMove))
-            val finishedMoves = mutableListOf<Move>()
-            val cachedMoves = mutableSetOf<Move>()
-            while (moves.isNotEmpty()) {
-                val move = moves.removeFirst()
-                if (!cachedMoves.add(move)) {
-                    continue
-                }
-                if (move.aPresses > 100 || move.bPresses > 100) {
-                    continue
-                }
-                else if (move.coords.first > game.prize.first || move.coords.second > game.prize.second) {
-                    continue
-                }
-                else if (move.coords == game.prize) {
-                    finishedMoves.add(move)
-                }
-                else {
-                    moves.addFirst(
-                        Move(
-                            move.coords + game.aButton.move,
-                            move.tokens + game.aButton.cost,
-                            move.aPresses + 1,
-                            move.bPresses
-                        )
-                    )
-                    moves.addFirst(
-                        Move(
-                            move.coords + game.bButton.move,
-                            move.tokens + game.bButton.cost,
-                            move.aPresses,
-                            move.bPresses + 1
-                        )
-                    )
-                }
-            }
 
-            total + (finishedMoves.minOfOrNull { it.tokens } ?: 0)
+        return games.fold(0L) { total, game ->
+            // Solve the equation - https://getyarn.io/yarn-clip/56eab036-62be-41c7-8236-0a033cf74b28
+            // aPresses * aButtonX + bPresses * bButtonX = prizeX
+            // -> aPresses * aButtonX = prizeX - (bPresses * bButtonX)
+            // -> aPresses = (prizeX - (bPresses * bButtonX))/aButtonX
+
+            // aPresses * aButtonY + bPresses * bButtonY = prizeY
+            // -->  bPresses * bButtonY = prizeY - (aPresses * aButtonY)
+            // -->  bPresses  = (prizeY - aPresses * aButtonY)/bButtonY
+
+            // Now solve for aPresses!
+            // aPresses = (prizeX - (((prizeY - aPresses * aButtonY)/bButtonY) * bButtonX)) /a ButtonX
+            // --> aPresses * aButtonX = prizeX - ((prizeY - aPresses * aButtonY) / bButtonY) * bButtonX
+            // --> aPresses * aButtonX = prizeX - ((prizeY - aPresses * aButtonY) * bButtonX)/bButtonY
+            // --> aPresses * aButtonX * bButtonY = prizeX * bButtonY - ((prizeY - aPresses * aButtonY) * bButtonX)
+            // --> aPresses * aButtonX * bButtonY + aPresses * aButtonY * bButtonX = prizeX * bButtonY − prizeY * bButtonX
+            // --> aPresses * (aButtonX * bButtonY + aButtonY * bButtonX) = prizeX * bButtonY − prizeY * bButtonX
+            // --> aPresses  = (prizeX * bButtonY − prizeY * bButtonX) /(aButtonX * bButtonY + aButtonY * bButtonX)
+
+            // Same for bPresses
+            val (prizeX, prizeY) = game.prize
+            val (bButtonX, bButtonY) = game.bButton.move
+            val (aButtonX, aButtonY) = game.aButton.move
+            // Force one to be a double, otherwise we have to recheck the numbers to see if they actually work
+            val aPresses =
+                (prizeX * bButtonY - prizeY * bButtonX) / (aButtonX.toDouble() * bButtonY - aButtonY * bButtonX)
+            val bPresses =
+                (prizeY * aButtonX - prizeX * aButtonY) / (aButtonX.toDouble() * bButtonY - aButtonY * bButtonX)
+
+            if (aPresses.toLong().compareTo(aPresses) == 0 && bPresses.toLong().compareTo(bPresses) == 0) {
+                aPresses.toLong() * 3 + bPresses.toLong() + total
+            } else {
+                total
+            }
         }.also { it.println() }
     }
 
-
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun part1(input: List<String>): Long {
+        return solve(input, false)
     }
+
+    fun part2(input: List<String>): Long {
+        return solve(input, true)
+    }
+
 
     val sampleInput = """
         Button A: X+94, Y+34
@@ -104,17 +106,16 @@ fun main() {
         Button B: X+27, Y+71
         Prize: X=18641, Y=10279
     """.trimIndent().lines()
-    check(part1(sampleInput) == 480)
+    check(part1(sampleInput) == 480L)
 
     val input = readInput("2024/Day13")
     part1(input).println()
 
-    check(part2(sampleInput) == 982)
     part2(input).println()
 
     "${(System.currentTimeMillis() - start)} milliseconds".println()
 }
 
-private operator fun Pair<Int, Int>.plus(currentPosition: Pair<Int, Int>): Pair<Int, Int> {
+private operator fun Pair<Long, Long>.plus(currentPosition: Pair<Long, Long>): Pair<Long, Long> {
     return this.first + currentPosition.first to this.second + currentPosition.second
 }
