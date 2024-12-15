@@ -10,7 +10,15 @@ fun main() {
 
     val start = System.currentTimeMillis()
 
-    fun part1(input: List<String>): Int {
+    val searchPatterns = listOf(
+        Coordinate(0, 1),
+        Coordinate(0, -1),
+        Coordinate(1, 0),
+        Coordinate(-1, 0),
+    )
+
+    fun mapRegions(input: List<String>): MutableMap<Coordinate, Int> {
+        val regions = mutableMapOf<Coordinate, Int>()
         val map = buildMap {
             for (y in input.indices) {
                 for (x in input[y].indices) {
@@ -19,14 +27,7 @@ fun main() {
             }
         }
 
-        val regions = mutableMapOf<Coordinate, Int>()
         var runningRegionNumber = 0
-        val searchPatterns = listOf(
-            Coordinate(0, 1),
-            Coordinate(0, -1),
-            Coordinate(1, 0),
-            Coordinate(-1, 0),
-        )
         for ((coordinate, plant) in map) {
             if (coordinate in regions) {
                 continue
@@ -37,16 +38,20 @@ fun main() {
                 val currentSpot = spotsToSearch.removeFirst()
                 if (map[currentSpot] == plant) {
                     regions[currentSpot] = runningRegionNumber
-                    val newSpots = searchPatterns
-                        .map { currentSpot + it }
+                    val newSpots = searchPatterns.map { currentSpot + it }
                         .filter { nextSpot -> nextSpot !in spotsToSearch && nextSpot in map && nextSpot !in regions }
 
                     spotsToSearch.addAll(newSpots)
                 }
             }
         }
+        return regions
+    }
 
-        return (1..runningRegionNumber).sumOf { regionNumber ->
+    fun part1(input: List<String>): Int {
+        val regions = mapRegions(input)
+
+        return (1..regions.size).sumOf { regionNumber ->
             val plants = regions.filter { it.value == regionNumber }
             val regionCoordinates = plants.keys
             val area = plants.size
@@ -78,7 +83,7 @@ fun main() {
     val input = readInput("2024/Day12")
     part1(input).println()
 
-    check(part2(sampleInput) == 982)
+    check(part2(sampleInput) == 80)
     part2(input).println()
 
     "${(System.currentTimeMillis() - start)} milliseconds".println()
