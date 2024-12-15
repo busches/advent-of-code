@@ -29,12 +29,14 @@ fun main() {
         prettyGrid.joinToString("\n") { it.joinToString("") }.println()
     }
 
-    fun part1(input: List<String>): Int {
-        val robotSymbol = '@'
-        val boxSymbol = 'O'
-        val wallSymbol = '#'
-        val freeSpace = '.'
+    val robotSymbol = '@'
+    val boxSymbol = 'O'
+    val wallSymbol = '#'
+    val freeSpace = '.'
+    val leftBoxSymbol = '['
+    val rightBoxSymbol = ']'
 
+    fun part1(input: List<String>): Int {
         val rawMap = input.take(input.indexOf(""))
         val rawMoves = input.takeLast(input.size - input.indexOf("") - 1)
 
@@ -46,23 +48,20 @@ fun main() {
             }
         }.toMutableMap()
         val moves = rawMoves.flatMap { it.toList() }.toMutableList()
-
-
         var robotPosition = map.filterValues { it == robotSymbol }.keys.first()
 
         while (moves.isNotEmpty()) {
             val move = moves.removeFirst()
             val attemptedPosition = robotPosition + moveDirection(move)
             val whatsAtThePosition = map[attemptedPosition]
-            "Found $whatsAtThePosition".println()
             when (whatsAtThePosition) {
                 wallSymbol -> {} // We do nothing
                 freeSpace -> {
                     map[attemptedPosition] = robotSymbol
                     map[robotPosition] = freeSpace
                     robotPosition = attemptedPosition
-
                 }
+
                 boxSymbol -> {
                     // Figure out if we can push the box the direction we're going
                     val searchDirection = moveDirection(move)
@@ -82,10 +81,8 @@ fun main() {
                     } while (whatsAtNextSpot != wallSymbol)
                 }
             }
-            "Moving $move".println()
-            prettyPrintGrid(rawMap.size, input[0].length, map)
+//            prettyPrintGrid(rawMap.size, input[0].length, map)
         }
-
 
         // calculate the GPS of boxes
         return map
