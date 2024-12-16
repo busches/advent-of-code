@@ -6,6 +6,14 @@ import readInput
 fun main() {
     data class Coordinate(val x: Int, val y: Int) {
         operator fun plus(other: Coordinate) = Coordinate(x + other.x, y + other.y)
+        fun hasBorder(move: Coordinate, regionCoordinates: Set<Coordinate>): Boolean =
+            this in regionCoordinates && (this + move) !in regionCoordinates
+
+        fun shiftClockwise(): Coordinate {
+            val (x, y) = this
+            // Wrote this out, but found the pattern that Left and Right are simple swaps to Up/Down, but Down/Up to Left/Right are inverse
+            return Coordinate(y * -1, x)
+        }
     }
 
     val start = System.currentTimeMillis()
@@ -69,7 +77,22 @@ fun main() {
 
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val regions = mapRegions(input)
+
+        return (1..regions.size).sumOf { regionNumber ->
+            val plants = regions.filter { it.value == regionNumber }
+            val regionCoordinates = plants.keys
+            val area = plants.size
+            // Per wikipedia, we can count the number of sides of an irregular polygon by counting its corners
+            val corners = regionCoordinates.sumOf { coordinate ->
+                searchPatterns.count { searchPattern ->
+                    coordinate.hasBorder(searchPattern, regionCoordinates) &&
+                            !(coordinate + searchPattern.shiftClockwise())
+                                .hasBorder(searchPattern, regionCoordinates)
+                }
+            }
+            area * corners
+        }
     }
 
     val sampleInput = """
