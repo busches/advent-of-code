@@ -3,32 +3,33 @@ package `2024`
 import println
 import readInput
 
-private data class Coordinate(val x: Int, val y: Int) {
-    operator fun plus(other: Coordinate) = Coordinate(x + other.x, y + other.y)
-}
-
-private data class Robot(val position: Coordinate, val movement: Coordinate) {
-    fun move(gridWidth: Int, gridHeight: Int): Robot {
-        var (x, y) = position + movement
-        if (x >= gridWidth) {
-            x -= gridWidth
-        }
-        if (x < 0) {
-            x += gridWidth
-        }
-        if (y >= gridHeight) {
-            y -= gridHeight
-        }
-        if (y < 0) {
-            y += gridHeight
-        }
-
-        return copy(position = Coordinate(x, y))
-    }
-}
 
 fun main() {
     val start = System.currentTimeMillis()
+
+    data class Coordinate(val x: Int, val y: Int) {
+        operator fun plus(other: Coordinate) = Coordinate(x + other.x, y + other.y)
+    }
+
+    data class Robot(val position: Coordinate, val movement: Coordinate) {
+        fun move(gridWidth: Int, gridHeight: Int): Robot {
+            var (x, y) = position + movement
+            if (x >= gridWidth) {
+                x -= gridWidth
+            }
+            if (x < 0) {
+                x += gridWidth
+            }
+            if (y >= gridHeight) {
+                y -= gridHeight
+            }
+            if (y < 0) {
+                y += gridHeight
+            }
+
+            return copy(position = Coordinate(x, y))
+        }
+    }
 
     fun prettyPrintGrid(gridHeight: Int, gridWidth: Int, robots: List<Robot>) {
         val prettyGrid = mutableListOf<MutableList<String>>(mutableListOf())
