@@ -24,20 +24,32 @@ private enum class Direction(var coordinate: Coordinate) {
 fun main() {
     val start = System.currentTimeMillis()
 
-    data class Move(val position: Coordinate, val direction: Direction, val cost: Long)
+    data class Move(
+        val position: Coordinate,
+        val direction: Direction,
+        val cost: Long,
+        val previousCoordinates: Set<Coordinate>
+    )
 
-    fun prettyPrintGrid(gridHeight: Int, gridWidth: Int, map: Map<Coordinate, Char>) {
+    fun prettyPrintGrid(
+        gridHeight: Int,
+        gridWidth: Int,
+        map: Map<Coordinate, Char>,
+        completedMovePaths: Set<Coordinate> = emptySet()
+    ) {
         val prettyGrid = mutableListOf<MutableList<String>>(mutableListOf())
         for (y in 0..<gridHeight) {
             prettyGrid.add(y, mutableListOf())
             for (x in 0..<gridWidth) {
-                prettyGrid[y].add(x, map[Coordinate(x, y)].toString())
+                val coordinate = Coordinate(x, y)
+                val value = if (completedMovePaths.contains(coordinate)) "O" else map[coordinate].toString()
+                prettyGrid[y].add(x, value)
             }
         }
         prettyGrid.joinToString("\n") { it.joinToString("") }.println()
     }
 
-    fun part1(input: List<String>): Long {
+    fun solve(input: List<String>, part1: Boolean): Long {
         val map = buildMap {
             for (y in input.indices) {
                 for (x in input[y].indices) {
@@ -46,54 +58,87 @@ fun main() {
             }
         }
 
-//        prettyPrintGrid(input.size, input[0].length, map)
 
         val startingPosition = map.filterValues { it == 'S' }.keys.first()
+        startingPosition.println()
         val endingPosition = map.filterValues { it == 'E' }.keys.first()
 
-        val startingMove = Move(startingPosition, Direction.East, 0)
+        val startingMove = Move(startingPosition, Direction.East, 0, emptySet())
 
         val remainingMoves = PriorityQueue<Move>(compareBy { move -> move.cost })
         remainingMoves.add(startingMove)
-        val visited = mutableSetOf<Pair<Coordinate, Direction>>()
+        val visited = mutableSetOf<Triple<Coordinate, Direction, Set<Coordinate>>>()
+        var lowestCost = Long.MAX_VALUE
 
+        val completedMovePaths = mutableSetOf<Coordinate>()
         while (remainingMoves.isNotEmpty()) {
             val move = remainingMoves.remove()
+//            if (move.position == Coordinate(x=5, y=7) && move.direction == Direction.East) {
+//                "holy shit we're here - $move".println()
+//                prettyPrintGrid(input.size, input[0].length, map, move.previousCoordinates.toSet() + move.position)
+//            }
+
+            if (move.cost > lowestCost) {
+                continue // no reason to keep going
+            }
             val whatsHere = map[move.position]
             if (whatsHere == null || whatsHere == '#') {
                 continue // can't walk off the grid or into a wall
             }
             if (move.position == endingPosition) {
-                return move.cost
+                if (part1) {
+                    return move.cost
+                } else {
+                    "Found an exit path! - ${move.cost}".println()
+                    if (move.cost <= lowestCost) {
+                        "added the path".println()
+                        lowestCost = move.cost
+                        completedMovePaths.addAll(move.previousCoordinates + move.position)
+                    }
+                    continue
+                }
             }
-            if (!visited.add(move.position to move.direction)) {
+            if (!visited.add(Triple(move.position, move.direction, move.previousCoordinates))) {
                 continue // already been here
             }
             // We can only go straight, left, or right, never back
             val currentDirection = move.direction
-            remainingMoves.add(move.copy(position = move.position + currentDirection.coordinate, cost = move.cost + 1))
             remainingMoves.add(
                 move.copy(
-                    position = move.position,
-                    cost = move.cost + 1000,
-                    direction = currentDirection.counterClockwise()
+                    position = move.position + currentDirection.coordinate,
+                    cost = move.cost + 1,
+                    previousCoordinates = move.previousCoordinates + move.position
                 )
             )
             remainingMoves.add(
                 move.copy(
                     position = move.position,
                     cost = move.cost + 1000,
-                    direction = currentDirection.clockwise()
+                    direction = currentDirection.counterClockwise(),
+                    previousCoordinates = move.previousCoordinates + move.position
+                )
+            )
+            remainingMoves.add(
+                move.copy(
+                    position = move.position,
+                    cost = move.cost + 1000,
+                    direction = currentDirection.clockwise(),
+                    previousCoordinates = move.previousCoordinates + move.position
                 )
             )
         }
 
-        TODO("We didn't find the exit")
+        prettyPrintGrid(input.size, input[0].length, map, completedMovePaths)
+        return completedMovePaths.size.toLong().also { it.println() }
+    }
+
+    fun part1(input: List<String>): Long {
+        return solve(input, true)
     }
 
 
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun part2(input: List<String>): Long {
+        return solve(input, false)
     }
 
     val sampleInput = """
@@ -113,12 +158,12 @@ fun main() {
         #S..#.....#...#
         ###############
     """.trimIndent().lines()
-    check(part1(sampleInput) == 7036L)
+//    check(part1(sampleInput) == 7036L)
 
     val input = readInput("2024/Day16")
-    part1(input).println()
+//    part1(input).println()
 
-    check(part2(sampleInput) == 982)
+    check(part2(sampleInput) == 45L)
     part2(input).println()
 
     "${(System.currentTimeMillis() - start)} milliseconds".println()
