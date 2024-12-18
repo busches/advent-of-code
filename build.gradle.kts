@@ -13,12 +13,6 @@ dependencies {
 }
 
 tasks {
-    sourceSets {
-        main {
-            java.srcDirs("src")
-        }
-    }
-
     wrapper {
         gradleVersion = "8.11.1"
     }
