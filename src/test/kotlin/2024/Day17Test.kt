@@ -8,9 +8,8 @@ class Day17Test {
     @Test
     fun `If register C contains 9, the program 2,6 would set register B to 1`() {
         val register = Registers(1, 2, 9)
-        val instructions = listOf(2, 6)
 
-        val updatedRegister = register.updateRegister(instructions)
+        val updatedRegister = register.updateRegister(2, 6)
         assertEquals(1, updatedRegister.b)
     }
 
