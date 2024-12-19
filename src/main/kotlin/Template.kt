@@ -5,12 +5,12 @@ fun main() {
     val start = System.currentTimeMillis()
 
     fun part1(input: List<String>): Int {
-        TODO()
+        TODO("Need to implement Part 1")
     }
 
 
     fun part2(input: List<String>): Int {
-        TODO()
+        TODO("Need to implement Part 2")
     }
 
     val sampleInput = """
