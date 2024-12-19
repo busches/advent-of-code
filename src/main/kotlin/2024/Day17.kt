@@ -2,33 +2,31 @@ package `2024`
 
 import utils.println
 import utils.readInput
-import java.text.DecimalFormat
-import java.time.LocalDateTime
 import kotlin.math.pow
 
 data class Registers(
     val a: Long,
-    val b: Int,
-    val c: Int,
+    val b: Long,
+    val c: Long,
     val output: List<Int> = emptyList(),
     val nextInstruction: Int = -1
 ) {
     fun updateRegister(opcode: Int, operand: Int): Registers {
         val comboOperand = when (operand) {
             4 -> a
-            5 -> b.toLong()
-            6 -> c.toLong()
+            5 -> b
+            6 -> c
             else -> operand.toLong()
         }
         return when (opcode) {
             0 -> copy(a = a.div(2.toDouble().pow(comboOperand.toDouble())).toLong())
-            1 -> copy(b = b.xor(operand))
-            2 -> copy(b = comboOperand.mod(8))
+            1 -> copy(b = b.xor(operand.toLong()))
+            2 -> copy(b = comboOperand.mod(8).toLong())
             3 -> if (a == 0L) this else copy(nextInstruction = operand)
             4 -> copy(b = b.xor(c))
             5 -> copy(output = output + comboOperand.mod(8))
 //            6 -> copy(b = a.div(2.toDouble().pow(comboOperand.toDouble())).toLong())
-            7 -> copy(c = a.div(2.toDouble().pow(comboOperand.toDouble())).toInt())
+            7 -> copy(c = a.div(2.toDouble().pow(comboOperand.toDouble())).toLong())
             else -> throw IllegalArgumentException("Opcode $opcode not supported")
         }
     }
@@ -45,9 +43,7 @@ fun runProgram(register: Registers, allInstructions: List<Int>, part2: Boolean =
         )
 
         if (part2 && updatedRegister.output.isNotEmpty()) {
-            if (updatedRegister.output != allInstructions.take(updatedRegister.output.size)) {
-                return Registers(0, 0, 0)
-            }
+            return updatedRegister
         }
 
         if (updatedRegister.nextInstruction >= 0) {
@@ -66,14 +62,14 @@ fun main() {
 
     fun mapProgramInstructionsAndRegister(input: List<String>): Pair<List<Int>, Registers> {
         var a = 0L
-        var b = 0
-        var c = 0
+        var b = 0L // B&C e need to be longs or we're off by a few hundred thousand, that was fun
+        var c = 0L
         var programInstructions = listOf<Int>()
         input.forEach { line ->
             when {
                 line.contains("Register A") -> a = line.substringAfter(":").trim().toLong()
-                line.contains("Register B") -> b = line.substringAfter(":").trim().toInt()
-                line.contains("Register C") -> c = line.substringAfter(":").trim().toInt()
+                line.contains("Register B") -> b = line.substringAfter(":").trim().toLong()
+                line.contains("Register C") -> c = line.substringAfter(":").trim().toLong()
                 line.contains("Program") -> {
                     programInstructions = line.substringAfter(":").split(",").map { it.trim().toInt() }
                 }
@@ -91,18 +87,24 @@ fun main() {
     }
 
     fun part2(input: List<String>): Long {
-        val (programInstructions, registers) = mapProgramInstructionsAndRegister(input)
-        var a = 0L
-        val dec = DecimalFormat("#,###.##")
-        while (true) {
-            val output = runProgram(registers.copy(a = a), programInstructions, true).output
-            if (output == programInstructions) {
-                return a.also { "Found the answer!".println() }
-            } else {
-                if (a % 10_000_000 == 0L) "${LocalDateTime.now()} - A is ${dec.format(a)}.".println()
-                a++
+        val (programInstructions, _) = mapProgramInstructionsAndRegister(input)
+
+        // Reverse the list so we can see what state we have to be in to generate that number
+        // Then work backwards from there to see what state for the previous number, etc
+        return programInstructions
+            .reversed()
+            .fold(listOf(0L)) { acc, instruction ->
+                acc.flatMap { possibleAValue ->
+                    (0L..7L).mapNotNull { bit ->
+                        val a = (possibleAValue shl 3) or bit
+                        val firstOutput = runProgram(Registers(a, 0, 0), programInstructions)
+                        if (firstOutput.output.first() == instruction) {
+                            a
+                        } else null
+                    }
+                }
             }
-        }
+            .min()
     }
 
     val sampleInput = """
