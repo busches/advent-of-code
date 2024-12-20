@@ -6,36 +6,42 @@ import utils.readInput
 fun main() {
     val start = System.currentTimeMillis()
 
-    fun part1(input: List<String>): Int {
+    fun solve(input: List<String>): List<Long> {
         val towels = input.first().split(",").map { it.trim() }
         val patterns = input.takeLast(input.size - 2)
 
-        val towelPatternCache = mutableMapOf<String, Boolean>()
+        val towelPatternCache = mutableMapOf<String, Long>()
 
-        fun isTowelPattern(pattern: String): Boolean = towelPatternCache.getOrPut(pattern) {
+        fun isTowelPattern(pattern: String): Long = towelPatternCache.getOrPut(pattern) {
             if (pattern.isEmpty()) {
                 // We found all patterns
-                true
+                1
             } else {
                 towels
                     .filter { towel -> towel in pattern } // Only scan towels that are in the pattern
-                    .any { testTowel ->
+                    .sumOf { testTowel ->
                         if (pattern.startsWith(testTowel)) {
                             isTowelPattern(pattern.removePrefix(testTowel))
                         } else {
-                            false
+                            0
                         }
                     }
 
             }
         }
 
-        return patterns.map { pattern -> isTowelPattern(pattern) }.count { it }
+        return patterns.map { pattern -> isTowelPattern(pattern) }
+    }
+
+    fun part1(input: List<String>): Int {
+        val matches = solve(input)
+        return matches.count { it > 0 }
     }
 
 
-    fun part2(input: List<String>): Int {
-        TODO("Need to implement Part 2")
+    fun part2(input: List<String>): Long {
+        val matches = solve(input)
+        return matches.sum()
     }
 
     val sampleInput = """
@@ -55,7 +61,7 @@ fun main() {
     val input = readInput("2024/Day19")
     part1(input).println()
 
-    check(part2(sampleInput) == 982)
+    check(part2(sampleInput) == 16L)
     part2(input).println()
 
     "${(System.currentTimeMillis() - start)} milliseconds".println()
