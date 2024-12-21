@@ -122,9 +122,17 @@ class Day20 {
             recreatedMove.getCheatMoves()
         }
 
+        val timingCache = fastestPathWithoutCheating
+            .mapIndexed { index, coordinate -> coordinate to index }
+            .toMap(mutableMapOf())
+
         val allSolves = newCheatingStartPositions
             .mapNotNull { startingMove ->
-                solve(map, startingMove, endingPoint, fastestTimeWithoutCheating)?.size
+                if (timingCache.containsKey(startingMove.position)) {
+                    fastestTimeWithoutCheating - timingCache[startingMove.position]!! + startingMove.steps
+                } else {
+                    solve(map, startingMove, endingPoint, fastestTimeWithoutCheating)?.size
+                }
             }
 
         return allSolves
