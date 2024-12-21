@@ -23,12 +23,20 @@ class Day20 {
     data class Move(
         val position: Coordinate,
         val steps: Int,
-        val cheatsLeft: Int = 1,
-        val moves: Set<Coordinate> = emptySet()
+        val moves: List<Coordinate> = emptyList()
     ) {
         fun getNextMoves(): Collection<Move> {
             return Direction.entries.map { direction ->
                 copy(position = position + direction.coordinate, steps = steps + 1, moves = moves + position)
+            }
+        }
+
+        // Cheat by potentially stepping over a wall
+        fun getCheatMoves(): Collection<Move> {
+            return Direction.entries.map { direction ->
+                val firstPosition = position + direction.coordinate
+                val secondPosition = firstPosition + direction.coordinate
+                copy(position = secondPosition, steps = steps + 2, moves = moves + position + firstPosition)
             }
         }
     }
@@ -64,57 +72,35 @@ class Day20 {
 
     private fun solve(
         map: Map<Coordinate, Char>,
-        startingPoint: Coordinate,
+        startingMove: Move,
         endingPoint: Coordinate,
-        allowCheating: Boolean,
         fastestSolveWithCheating: Int
-    ): List<Int> {
-        val remainingMoves = PriorityQueue<Move>(compareBy { move -> if (allowCheating) move.steps * -1 else move.steps })
-        remainingMoves.add(Move(startingPoint, 0))
+    ): List<Coordinate>? {
+        val remainingMoves = PriorityQueue<Move>(compareBy { move -> move.steps })
+        remainingMoves.add(startingMove)
 
-        val finishedRaces = mutableListOf<Int>()
-
-        val visited = mutableSetOf<Pair<Coordinate, Set<Coordinate>>>()
+        val visited = mutableSetOf<Pair<Coordinate, List<Coordinate>>>()
         while (remainingMoves.isNotEmpty()) {
-            var move = remainingMoves.remove()
+            val move = remainingMoves.remove()
             val whatsHere = map[move.position]
-            var cheatedThisTurn = false
             if (move.steps > fastestSolveWithCheating) {
                 // No reason to keep trying
-                continue
+                return null
             } else if (move.position in move.moves) {
                 // We've already been here
                 continue
             } else if (whatsHere == null) {
                 continue /// can't walk off the grid
             } else if (whatsHere == '#') {
-                if (allowCheating && move.cheatsLeft > 0) {
-                    move = move.copy(cheatsLeft = move.cheatsLeft - 1)
-                    cheatedThisTurn = true
-                } else {
-                    continue // can't walk into a wall, unless we're cheating
-                }
-            }
-
-            // Need to decrease cheating if we're cheating and we didn't cheat this turn
-//            if (!cheatedThisTurn && move.cheatsLeft == 1) {
-//                move = move.copy(cheatsLeft = 0)
-//            }
-
-            if (move.position == endingPoint) {
-                finishedRaces.add(move.steps)
-                if (!allowCheating) {
-//
-
-                    return finishedRaces
-                }
-            }
-            if (!visited.add(move.position to move.moves)) {
+                continue // can't walk into a wall
+            } else if (move.position == endingPoint) {
+                return move.moves
+            } else if (!visited.add(move.position to move.moves)) {
                 continue // already been here
             }
             remainingMoves.addAll(move.getNextMoves())
         }
-        return finishedRaces
+        return null
     }
 
     fun part1(input: List<String>, timeSaved: Int = 100): Int {
@@ -122,24 +108,27 @@ class Day20 {
         val startingPoint = map.filterValues { it == 'S' }.keys.first()
         val endingPoint = map.filterValues { it == 'E' }.keys.first()
 
-        val fastestSolveWithoutCheating = solve(map, startingPoint, endingPoint, false, Int.MAX_VALUE)
-            .first()
-
+        val fastestPathWithoutCheating = solve(map, Move(startingPoint, 0), endingPoint, Int.MAX_VALUE)!!
+        val fastestTimeWithoutCheating = fastestPathWithoutCheating.size
 
         // Sample input should be 84
-        "Fastest solve without cheat $fastestSolveWithoutCheating".println()
+        "Fastest solve without cheat $fastestTimeWithoutCheating".println()
 
-//        TODO()
 //        prettyPrintGrid(15, 15, map, move.moves)
 
-        val allSolves = solve(map, startingPoint, endingPoint, true, fastestSolveWithoutCheating)
+        // Path is well defined, so we only need to cheat along the path
+        val newCheatingStartPositions = fastestPathWithoutCheating.flatMapIndexed { index, coordinate ->
+            val recreatedMove = Move(coordinate, index, moves = fastestPathWithoutCheating.take(index))
+            recreatedMove.getCheatMoves()
+        }
+
+        val allSolves = newCheatingStartPositions
+            .mapNotNull { startingMove ->
+                solve(map, startingMove, endingPoint, fastestTimeWithoutCheating)?.size
+            }
 
         return allSolves
-            .filter { fastestSolveWithoutCheating - it >= timeSaved }
-//            .onEach { grid ->
-//                "Here's a grid".println()
-//                prettyPrintGrid(15, 15, map, grid)
-//            }
+            .filter { fastestTimeWithoutCheating - it >= timeSaved }
             .count()
     }
 }
@@ -173,11 +162,11 @@ fun main() {
         ###############
     """.trimIndent().lines()
 
-//    check(day20.part1(sampleInput, 64) == 1)
-//    check(day20.part1(sampleInput, 40) == 2)
-//    check(day20.part1(sampleInput, 38) == 3)
-//    check(day20.part1(sampleInput, 36) == 4)
-//    check(day20.part1(sampleInput, 20) == 5)
+    check(day20.part1(sampleInput, 64) == 1)
+    check(day20.part1(sampleInput, 40) == 2)
+    check(day20.part1(sampleInput, 38) == 3)
+    check(day20.part1(sampleInput, 36) == 4)
+    check(day20.part1(sampleInput, 20) == 5)
     check(day20.part1(sampleInput, 12) == 8)
 
     val input = readInput("2024/Day20")
