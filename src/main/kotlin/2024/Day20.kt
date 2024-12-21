@@ -7,7 +7,7 @@ import java.util.*
 
 class Day20 {
     @JvmInline
-    value class Coordinate(val coordinates: Pair<Int, Int>) {
+    value class Coordinate(private val coordinates: Pair<Int, Int>) {
         operator fun plus(other: Coordinate) =
             Coordinate(coordinates.first + other.coordinates.first to coordinates.second + other.coordinates.second)
     }
@@ -50,24 +50,6 @@ class Day20 {
             }
         }
         return map
-    }
-
-    private fun prettyPrintGrid(
-        gridHeight: Int,
-        gridWidth: Int,
-        map: Map<Coordinate, Char>,
-        completedMovePaths: Set<Coordinate> = emptySet()
-    ) {
-        val prettyGrid = mutableListOf<MutableList<String>>(mutableListOf())
-        for (y in 0..<gridHeight) {
-            prettyGrid.add(y, mutableListOf())
-            for (x in 0..<gridWidth) {
-                val coordinate = Coordinate(x to y)
-                val value = if (completedMovePaths.contains(coordinate)) "O" else map[coordinate].toString()
-                prettyGrid[y].add(x, value)
-            }
-        }
-        prettyGrid.joinToString("\n") { it.joinToString("") }.println()
     }
 
     private fun solve(
@@ -116,7 +98,7 @@ class Day20 {
 
 //        prettyPrintGrid(15, 15, map, move.moves)
 
-        // Path is well defined, so we only need to cheat along the path
+        // Path is well-defined, so we only need to cheat along the path
         val newCheatingStartPositions = fastestPathWithoutCheating.flatMapIndexed { index, coordinate ->
             val recreatedMove = Move(coordinate, index, moves = fastestPathWithoutCheating.take(index))
             recreatedMove.getCheatMoves()
@@ -135,9 +117,7 @@ class Day20 {
                 }
             }
 
-        return allSolves
-            .filter { fastestTimeWithoutCheating - it >= timeSaved }
-            .count()
+        return allSolves.count { fastestTimeWithoutCheating - it >= timeSaved }
     }
 }
 
