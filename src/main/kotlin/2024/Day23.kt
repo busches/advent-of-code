@@ -6,7 +6,7 @@ import utils.readInput
 fun main() {
     val start = System.currentTimeMillis()
 
-    fun getConnectionChain(allConnections: Map<String, List<String>>, startingConnection: String): List<List<String>> {
+    fun getConnectionChain(allConnections: Map<String, Set<String>>, startingConnection: String): List<List<String>> {
         var connections = listOf(listOf(startingConnection))
 
         while (connections.first().count() < 3) {
@@ -27,12 +27,18 @@ fun main() {
         }.map { it.sorted() }
     }
 
-    fun part1(input: List<String>): Int {
+    fun getGroupedConnections(input: List<String>): Map<String, Set<String>> {
         val connections = input.flatMap { line ->
             val (a, b) = line.split("-")
             listOf(a to b, b to a)
         }
         val groupedConnections = connections.groupBy({ it.first }, { it.second })
+            .mapValues { it.value.toSet() }
+        return groupedConnections
+    }
+
+    fun part1(input: List<String>): Int {
+        val groupedConnections = getGroupedConnections(input)
         val onlyTConnections = groupedConnections.filter { it.key.startsWith("t") }
 
         return onlyTConnections
@@ -41,9 +47,54 @@ fun main() {
             .size
     }
 
+    // This works for the sample input, but needs some kind of cache, which lead to Bron Kerbosch shennagins
+    fun mapConnection(allConnections: Map<String, List<String>>, connection: String, mappedConnection: List<String>): List<String> {
+        val nextConnections = allConnections[connection]
+        return if (nextConnections == null) {
+            if (mappedConnection.first() == mappedConnection.last()) {
+                mappedConnection
+            } else {
+                emptyList()
+            }
+        } else {
+            if (mappedConnection.contains(connection)) {
+                // we looped around
+                mappedConnection
+            } else {
+                nextConnections.map { mapConnection(allConnections, it, mappedConnection + connection) }.maxBy { it.size }
+            }
+        }
+    }
+
+    // well ok - https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
+    fun bronKerbosch(
+        p: MutableSet<String>,
+        r: Set<String> = emptySet(),
+        x: MutableSet<String> = mutableSetOf(),
+        graph: Map<String, Set<String>>
+    ): Set<Set<String>> {
+        if (p.isEmpty() && x.isEmpty()) return setOf(r)
+
+        return p.toList().flatMap { vertex ->
+            bronKerbosch(
+                r = r + vertex,
+                p = p.intersect(graph[vertex]!!).toMutableSet(),
+                x = x.intersect(graph[vertex]!!).toMutableSet(),
+                graph = graph
+            ).also {
+                p -= vertex
+                x += vertex
+            }
+        }.toSet()
+    }
 
     fun part2(input: List<String>): String {
-        TODO("Need to implement Part 2")
+        val groupedConnections = getGroupedConnections(input)
+
+        return bronKerbosch(groupedConnections.keys.toMutableSet(), graph = groupedConnections)
+            .maxBy { it.size }
+            .sorted()
+            .joinToString(",")
     }
 
     val sampleInput = """
@@ -92,8 +143,8 @@ fun main() {
         ta-ka
         de-ta
         ka-de
-    """.trimIndent()
-    check(part2(sampleInput) == "co,de,ka,ta")
+    """.trimIndent().lines()
+    check(part2(part2SampleInput) == "co,de,ka,ta")
     part2(input).println()
 
     "${(System.currentTimeMillis() - start)} milliseconds".println()
