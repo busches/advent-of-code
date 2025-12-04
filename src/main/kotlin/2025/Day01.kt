@@ -2,13 +2,16 @@ package `2025`
 
 import utils.println
 import utils.readInput
+import kotlin.math.absoluteValue
 
 fun main() {
 
-    fun part1(input: List<String>): Int {
+    fun solve(input: List<String>, part2: Boolean): Int {
         var dialPosition = 50
         var timesAtZero = 0
+        var pastZero = 0
 
+        var previousPosition = 50
         input.forEach { instruction ->
             val direction = instruction.first()
             val turn = instruction.substring(1).toInt()
@@ -20,19 +23,30 @@ fun main() {
             }
 
             dialPosition += numberToTurn % 100
+            pastZero += (numberToTurn / 100).absoluteValue
             if (dialPosition >= 100) {
                 dialPosition -= 100
+                if (dialPosition !=0) {
+                    pastZero++
+                }
             } else if (dialPosition < 0) {
                 dialPosition += 100
+                if (previousPosition != 0 && dialPosition !=0) {
+                    pastZero++
+                }
             }
             if (dialPosition == 0) {
                 timesAtZero++
             }
-//            println("Rotated $instruction now at $dialPosition")
+
+            previousPosition = dialPosition
         }
 
-//        println(timesAtZero)
-        return timesAtZero
+        return if (part2) pastZero + timesAtZero else timesAtZero
+    }
+
+    fun part1(input: List<String>): Int {
+        return solve(input, false)
     }
 
     val sampleInput = """
@@ -49,15 +63,14 @@ fun main() {
     """.trimIndent()
     check(part1(sampleInput.lines()) == 3)
 
-
     fun part2(input: List<String>): Int {
-        TODO()
+        return solve(input, true)
     }
 
     val input = readInput("2025/Day01")
     part1(input).println()
 
-    check(part2(sampleInput.lines()) == 31)
+    check(part2(sampleInput.lines()) == 6)
 
     part2(input).println()
 }
