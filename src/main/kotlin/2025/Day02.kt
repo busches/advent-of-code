@@ -36,14 +36,32 @@ fun main() {
     """.trimIndent()
     check(part1(sampleInput.lines()) == 1227775554L)
 
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun part2(input: List<String>): Long {
+        val ranges = input.first().split(",")
+        return ranges.sumOf { range ->
+            val (startRange, endRange) = range.split("-")
+            val invalidIds = (startRange.toLong()..endRange.toLong()).sumOf({ num ->
+                val id = num.toString()
+                val midPoint = id.length / 2
+                val invalid = (1..midPoint).any { windowSize ->
+                    id.chunked(windowSize).allEqual()
+                }
+                if (invalid) num else 0
+            })
+
+            invalidIds
+        }
     }
 
     val input = readInput("2025/Day02")
     part1(input).println()
 
-    check(part2(sampleInput.lines()) == 6)
+    check(part2(sampleInput.lines()) == 4174379265L)
 
     part2(input).println()
+}
+
+private fun List<String>.allEqual(): Boolean {
+    val first = first()
+    return all { it == first }
 }
