@@ -5,8 +5,25 @@ import utils.readInput
 
 fun main() {
 
-    fun checkGrid(grid: List<List<Char>>, y: Int, x: Int): Int {
+    fun hasRoll(grid: List<List<Char>>, y: Int, x: Int): Int {
         return if (y in grid.indices && x in grid[y].indices && grid[y][x] == '@') 1 else 0
+    }
+
+    fun canMoveRoll(grid: List<List<Char>>, y: Int, x: Int): Boolean {
+        if (grid[y][x] == '@') {
+            val coordinatesToSearch = listOf(
+                Pair(y - 1, x - 1),
+                Pair(y - 1, x),
+                Pair(y - 1, x + 1),
+                Pair(y, x - 1),
+                Pair(y, x + 1),
+                Pair(y + 1, x - 1),
+                Pair(y + 1, x),
+                Pair(y + 1, x + 1),
+            )
+           return coordinatesToSearch.sumOf { (y, x) -> hasRoll(grid, y, x) } < 4
+        }
+        return false
     }
 
     fun part1(input: List<String>): Long {
@@ -14,28 +31,10 @@ fun main() {
         var rollsToMove = 0L
         for (y in grid.indices) {
             for (x in grid[y].indices) {
-                if (grid[y][x] == '@') {
-                    val upperLeft = checkGrid(grid, y - 1, x - 1)
-                    val upperMiddle = checkGrid(grid, y - 1, x)
-                    val upperRight = checkGrid(grid, y - 1, x + 1)
-                    val left = checkGrid(grid, y, x - 1)
-                    val right = checkGrid(grid, y, x + 1)
-                    val lowerLeft = checkGrid(grid, y + 1, x - 1)
-                    val lowerMiddle = checkGrid(grid, y + 1, x)
-                    val lowerRight = checkGrid(grid, y + 1, x + 1)
-                    val nearByRolls =
-                        upperLeft + upperMiddle + upperRight + left + right + lowerLeft + lowerMiddle + lowerRight
-                    if (nearByRolls < 4) {
-                        print("x")
-                        rollsToMove++
-                    } else {
-                        print(grid[y][x])
-                    }
-                } else {
-                    print(grid[y][x])
+                if (canMoveRoll(grid, y, x)) {
+                    rollsToMove++
                 }
             }
-            println()
         }
 
         return rollsToMove
@@ -63,30 +62,12 @@ fun main() {
             rollsRemoveThisRun = 0
             for (y in grid.indices) {
                 for (x in grid[y].indices) {
-                    if (grid[y][x] == '@') {
-                        val upperLeft = checkGrid(grid, y - 1, x - 1)
-                        val upperMiddle = checkGrid(grid, y - 1, x)
-                        val upperRight = checkGrid(grid, y - 1, x + 1)
-                        val left = checkGrid(grid, y, x - 1)
-                        val right = checkGrid(grid, y, x + 1)
-                        val lowerLeft = checkGrid(grid, y + 1, x - 1)
-                        val lowerMiddle = checkGrid(grid, y + 1, x)
-                        val lowerRight = checkGrid(grid, y + 1, x + 1)
-                        val nearByRolls =
-                            upperLeft + upperMiddle + upperRight + left + right + lowerLeft + lowerMiddle + lowerRight
-                        if (nearByRolls < 4) {
-                            print("x")
-                            rollsRemoved++
-                            rollsRemoveThisRun++
-                            grid[y][x] = 'x'
-                        } else {
-                            print(grid[y][x])
-                        }
-                    } else {
-                        print(grid[y][x])
+                    if (canMoveRoll(grid, y, x)) {
+                        rollsRemoved++
+                        rollsRemoveThisRun++
+                        grid[y][x] = 'x'
                     }
                 }
-                println()
             }
         }
 
