@@ -10,15 +10,10 @@ fun main() {
             val (startRange, endRange) = it.split("-")
             startRange.toLong()..endRange.toLong()
         }
-        val ingredientsOnHand = input.drop(findLineBreak + 1);
-        ingredientsOnHand.println()
+        val ingredientsOnHand = input.drop(findLineBreak + 1)
 
         return ingredientsOnHand.count { ingredient ->
-            freshIngredients.any { range ->
-                (ingredient.toLong() in range)
-//                    .also { "$ingredient in $range - $it".println() }
-            }
-//                .also { "$ingredient is ${if (it) "fresh" else "spoiled"}".println() }
+            freshIngredients.any { range -> (ingredient.toLong() in range) }
         }.toLong()
     }
 
@@ -37,14 +32,42 @@ fun main() {
     """.trimIndent()
     check(part1(sampleInput.lines()) == 3L)
 
+    fun consolidate(freshIngredients: List<LongRange>): MutableList<LongRange> {
+        val consolidatedRanges = mutableListOf<LongRange>()
+        // Sorting is the kicker to merge efficiently
+        for (range in freshIngredients.sortedBy { it.first }) {
+            var newRange = range.first..range.last
+            for (knownRange in consolidatedRanges) {
+                if (newRange.first in knownRange) {
+                    "${newRange.first} exists inside $knownRange, shrinking range to ${(knownRange.last + 1)..newRange.last}".println()
+                    newRange = (knownRange.last + 1)..newRange.last
+                }
+                if (newRange.last in knownRange) {
+                    "${newRange.last} exists inside $knownRange, shrinking range to ${newRange.first..<knownRange.first}".println()
+                    newRange = newRange.first..<knownRange.first
+                }
+            }
+            if (newRange.first <= newRange.last) {
+                consolidatedRanges.add(newRange)
+            }
+        }
+        return consolidatedRanges
+    }
+
     fun part2(input: List<String>): Long {
-        TODO()
+        val findLineBreak = input.indexOf("")
+        val freshIngredients = input.take(findLineBreak).map {
+            val (startRange, endRange) = it.split("-")
+            startRange.toLong()..endRange.toLong()
+        }
+        return consolidate(freshIngredients)
+            .sumOf { range -> (range.last - range.first + 1).also { "$range has $it elements".println() } }
     }
 
     val input = readInput("2025/Day05")
     part1(input).println()
 
-    check(part2(sampleInput.lines()) == 43L)
+    check(part2(sampleInput.lines()) == 14L)
 
     part2(input).println()
 }
