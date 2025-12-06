@@ -30,32 +30,40 @@ fun main() {
 
 
     data class OpsToPerform(val operator: String, val numbers: List<Long>)
+    
+    fun chunkList(inputList: List<List<Char>>): List<List<List<Char>>> {
+        val result = mutableListOf<MutableList<List<Char>>>()
+        var currentSublist = mutableListOf<List<Char>>()
+        for (item in inputList) {
+            if (item.all { it.isWhitespace() }) {
+                result.add(currentSublist)
+                currentSublist = mutableListOf()
+            } else {
+                currentSublist.add(item)
+            }
+        }
+        // Don't forget last group
+        result.add(currentSublist)
 
+        return result
+    }
 
     fun part2(input: List<String>): Long {
         val rawData = input.map { line -> line.toList() }.transpose()
-
-        var operator = "?"
-        val numbers = mutableListOf<Long>()
-        val opsToPerform = mutableListOf<OpsToPerform>()
-        for (rawLine in rawData) {
-            if (rawLine.all { it.isWhitespace() }) {
-                opsToPerform.add(OpsToPerform(operator, numbers.toList()))
-                operator = "?"
-                numbers.clear()
-                continue
+        val opsToPerform = chunkList(rawData)
+            .map { it.filter { !it.all { it.isWhitespace() } } }
+            .map {
+                it.fold(OpsToPerform("?", emptyList())) { acc, chars ->
+                    var operator = acc.operator
+                    var numbers = chars.toList()
+                    if (chars.last() == '*' || chars.last() == '+') {
+                        operator = chars.last().toString()
+                        numbers = chars.dropLast(1)
+                    }
+                    val newNumber = numbers.filter { !it.isWhitespace() }.joinToString("").toLong()
+                    OpsToPerform(operator, acc.numbers + newNumber)
+                }
             }
-
-            var line = rawLine.toList()
-            if (operator == "?") {
-                operator = line.last().toString()
-                line = line.dropLast(1)
-            }
-            val number = line.filter { !it.isWhitespace() }.joinToString("").toLong()
-            numbers.add(number)
-        }
-        // add up last numbers too
-        opsToPerform.add(OpsToPerform(operator, numbers))
 
         return opsToPerform.sumOf { (operator, numbers) ->
             val initial = if (operator == "*") 1L else 0L
