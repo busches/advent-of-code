@@ -60,10 +60,17 @@ fun main() {
             circuits[circuitToShrink].clear()
         }
 
-        fun connectNextClosest() {
-            val (a, b) = closestPairs.next()
-            joinWithCircuit(a, b)
+        fun connectNextClosest(): Pair<JunctionBox, JunctionBox> {
+            return closestPairs.next().also { (a, b) -> joinWithCircuit(a, b) }
         }
+
+        fun groups(): List<Set<JunctionBox>> {
+            return circuits
+                .filter { circuit -> circuit.isNotEmpty() }
+                .sortedByDescending { circuit -> circuit.size }
+                .map { ids -> ids.map(boxes::get).toSet() }
+        }
+
     }
 
     fun part1(input: List<String>, numberOfConnectionsToMake: Int): Long {
@@ -76,14 +83,7 @@ fun main() {
         repeat(times = numberOfConnectionsToMake) {
             cm.connectNextClosest()
         }
-        return cm.circuits
-            .asSequence()
-            .filter { circuit -> circuit.isNotEmpty() }
-            .sortedByDescending { circuit -> circuit.size }
-            .map { ids -> ids.map(cm.boxes::get).toSet() }
-            .take(3)
-            .map { it.size.toLong() }
-            .reduce(Long::times)
+        return cm.groups().take(3).map { it.size.toLong() }.reduce(Long::times)
     }
 
     val sampleInput = """
@@ -111,7 +111,18 @@ fun main() {
     check(part1(sampleInput.lines(), 10) == 40L)
 
     fun part2(input: List<String>): Long {
-        TODO()
+        val junctionBoxPositions = input.map {
+            val (x, y, z) = it.split(",")
+            Coordinate3D(x.toInt(), y.toInt(), z.toInt())
+        }
+        val cm = ConnectionManager(junctionBoxPositions)
+
+        var lastConnection: Pair<JunctionBox, JunctionBox>? = null
+        while(cm.groups().size > 1) {
+            lastConnection = cm.connectNextClosest()
+        }
+        val (first, second) = lastConnection!!
+        return first.coordinate.x.toLong() * second.coordinate.x
     }
 
 
@@ -119,7 +130,7 @@ fun main() {
     // 13200 too low
     part1(input, 1000).println()
 
-    check(part2(sampleInput.lines()) == 40L)
+    check(part2(sampleInput.lines()) == 25272L)
 
     part2(input).println()
 }
