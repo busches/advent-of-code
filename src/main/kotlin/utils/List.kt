@@ -22,3 +22,10 @@ fun <T> List<T>.combinations(): Sequence<Pair<T, T>> = sequence {
         for (j in i + 1 until size)
             yield(this@combinations[i] to this@combinations[j])
 }
+
+fun <T> Iterable<T>.anyIndexed(predicate: (index: Int, T) -> Boolean): Boolean {
+    for ((index, item) in this.withIndex()) { //
+        if (predicate(index, item)) return true
+    }
+    return false
+}
