@@ -131,10 +131,14 @@ fun main() {
             val buttons = machine.buttonWiring
             val desiredJoltage = machine.joltageRequirements
 
+
+            // Joltage and Button Presses
+            // If we have the same joltage and button presses, it doesn't matter how we got there, don't start it again
+            val joltagesSeen = mutableSetOf<Pair<Joltage, Int>>()
+
             val machineQueue =
-                PriorityQueue<JoltageMachineState>(
-                    compareBy<JoltageMachineState> { state -> state.buttonPresses }
-                        .thenByDescending { state -> state.joltage.joltage.sum() })
+                PriorityQueue<JoltageMachineState>(compareBy<JoltageMachineState> { state -> state.buttonPresses }
+                    .thenByDescending { state -> state.joltage.joltage.sum() })
             machineQueue.apply {
                 buttons.forEach { add(JoltageMachineState(machine.joltageRequirements.start(), it)) }
             }
@@ -143,6 +147,9 @@ fun main() {
                 val (joltage, buttonsToPress, buttonPresses) = machineQueue.remove()
 
                 val newJoltage = joltage.press(buttonsToPress)
+                if (!joltagesSeen.add(newJoltage to buttonPresses)) {
+                    continue 
+                }
                 if (newJoltage.exceeds(desiredJoltage)) {
                     continue
                 }
@@ -158,7 +165,6 @@ fun main() {
             TODO()
         }
     }
-
 
     val input = readInput("2025/Day10")
 //    part1(input).println()
